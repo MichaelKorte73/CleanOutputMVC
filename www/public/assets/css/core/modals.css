@@ -1,0 +1,50 @@
+
+/* ============================================
+   MODAL
+============================================ */
+
+.modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999 !important;
+}
+.modal-dialog {
+    position: relative;
+    z-index: 100000 !important;
+}
+.modal:not([hidden]) { display:flex; }
+
+.modal-backdrop {
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,.65);
+    z-index: 99998 !important;
+}
+
+.modal-dialog {
+    background:#fff;
+    color:#1A1A1A;
+    padding:2rem;
+    width:90%;
+    max-width:650px;
+    border-radius:8px;
+    max-height:90vh;
+    overflow-y:auto;
+}
+
+.modal-close {
+    position:absolute;
+    top:.5rem;
+    right:.5rem;
+    background:transparent;
+    border:none;
+    font-size:1.8rem;
+    cursor:pointer;
+}
+
+body.modal-open {
+    overflow: hidden !important;
+}

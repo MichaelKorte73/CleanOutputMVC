@@ -1,0 +1,27 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+body {
+    font-family: system-ui, sans-serif;
+    background: #333;
+    color: #fff;
+}
+
+h1 {
+    font-size: clamp(1.8rem, 5vw, 3.6rem);
+    margin-bottom: 1.5rem;
+}
+
+h2,
+h3 {
+    color: #fcfcfd;
+}
+
+a {
+    color: inherit;
+    text-decoration: underline;
+}

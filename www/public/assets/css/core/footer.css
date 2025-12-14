@@ -1,0 +1,64 @@
+/* ============================================
+   FOOTER – neue Farben
+============================================ */
+.site-footer {
+    background:#1A0F33; /* dunkles Violett */
+    color:#fff;
+    margin-top:5rem;
+}
+
+.footer-main {
+    padding:3rem 0 2rem;
+    border-bottom:1px solid rgba(255,255,255,0.15);
+}
+
+.footer-title {
+    font-size:1.3rem;
+    font-weight:600;
+    margin-bottom:.8rem;
+    color:#fff;
+}
+
+.footer-nav {
+    list-style:none;
+    padding:0;
+}
+
+.footer-nav li { margin-bottom:.5rem; }
+
+.footer-nav a {
+    text-decoration:underline;
+    color:#fff;
+    opacity:1;
+font-weight:Bild;
+}
+
+.footer-nav a:hover { opacity:1; }
+
+.footer-cta {
+    display:inline-block;
+    margin-top:1rem;
+    padding:.6rem 1.4rem;
+    background:#000;
+    color:#fff; /* neutrales invertiertes Schema */
+    border-radius:4px;
+    font-weight:bold;
+}
+
+.footer-bottom {
+    background:#140A26; /* etwas dunkler */
+    padding:1rem 0;
+    color:rgba(255,255,255,1);
+    font-size:.9rem;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.back-to-top {
+    color:#fff;
+    opacity:.85;
+    text-decoration:none;
+}
+
+.back-to-top:hover { opacity:1; }

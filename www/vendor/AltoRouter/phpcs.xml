@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<ruleset name="rules">
+    <description>rules</description>
+    <rule ref="PSR12">
+        <exclude name="PSR1.Classes.ClassDeclaration.MissingNamespace" />
+    </rule>
+    <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
+    <file>AltoRouter.php</file>
+    <file>examples/</file>
+    <arg name="colors"/>
+</ruleset>

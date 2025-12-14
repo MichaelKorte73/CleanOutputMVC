@@ -1,0 +1,9 @@
+<section class="ce ce-text">text-image
+    {% if title is defined %}
+        <h2>{{ title }}</h2>
+    {% endif %}
+
+    {% if content is defined %}
+        {{ content|raw }}
+    {% endif %}
+</section>

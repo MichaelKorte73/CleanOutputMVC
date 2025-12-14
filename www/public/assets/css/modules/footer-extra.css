@@ -1,0 +1,11 @@
+.footer-teaser {
+    margin-top: 4rem;
+    padding: 1.4rem;
+    border: 1px solid rgba(47,255,255,0.25);
+    border-radius: 10px;
+    display: inline-block;
+}
+
+footer {
+margin-top: 60px; padding: 40px 0; text-align:center; opacity:0.9;
+}

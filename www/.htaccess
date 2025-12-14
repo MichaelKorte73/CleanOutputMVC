@@ -1,0 +1,96 @@
+#############################################
+# CHK MASTER .HTACCESS 
+# Strato-kompatibel, Routing + WebP + Caching
+#############################################
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+# Projekt liegt in /
+RewriteBase /
+
+########################################################
+# WEBP AUTOMATISCHE AUSLIEFERUNG
+########################################################
+# Wenn Browser WebP akzeptiert und passende .webp Datei existiert:
+RewriteCond %{HTTP_ACCEPT} image/webp
+RewriteCond %{REQUEST_FILENAME}.webp -f
+RewriteRule ^(.+)\.(jpe?g|png)$ $1.webp [T=image/webp,E=accept:1]
+
+########################################################
+# ROUTING: DATEIEN AUSLIEFERN, SONST FRONT CONTROLLER
+########################################################
+# Wenn Datei oder Ordner existiert → normal ausliefern
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Alles andere geht an index.php
+RewriteRule ^ index.php [QSA,L]
+
+</IfModule>
+
+#############################################
+# MIME TYPES
+#############################################
+AddType image/webp .webp
+
+#############################################
+# CACHING
+#############################################
+<IfModule mod_expires.c>
+    ExpiresActive On
+
+    ExpiresByType text/css "access plus 30 days"
+    ExpiresByType text/javascript "access plus 30 days"
+    ExpiresByType application/javascript "access plus 30 days"
+
+    ExpiresByType image/png "access plus 60 days"
+    ExpiresByType image/jpeg "access plus 60 days"
+    ExpiresByType image/webp "access plus 60 days"
+    ExpiresByType image/svg+xml "access plus 30 days"
+</IfModule>
+
+#############################################
+# KOMPRESSION — BROTLI
+#############################################
+<IfModule mod_brotli.c>
+    BrotliCompressionQuality 5
+
+    BrotliCompressionTypes \
+        text/html \
+        text/plain \
+        text/css \
+        text/javascript \
+        application/javascript \
+        application/json
+
+    SetEnvIfNoCase Request_URI "\.(xml|xsl|svg)$" no-brotli=1
+</IfModule>
+
+#############################################
+# KOMPRESSION — GZIP (fallback)
+#############################################
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript text/javascript application/json
+
+    SetEnvIfNoCase Request_URI "\.(xml|xsl|svg)$" no-gzip=1
+</IfModule>
+
+#############################################
+# SITEMAP — Nicht komprimieren
+#############################################
+<Files "sitemap.xml">
+   SetEnv no-gzip 1
+   SetEnv no-brotli 1
+</Files>
+
+#############################################
+# SECURITY HEADERS
+#############################################
+<IfModule mod_headers.c>
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

@@ -1,0 +1,52 @@
+.ce-block {
+    padding: 3rem 0;
+}
+
+@media (max-width: 767px) {
+    .ce-block { padding: 1.5rem 0; }
+}
+
+.ce-title {
+    font-size: 2rem;
+    margin: 1rem 0 1.2rem;
+}
+
+.ce-block p {
+    line-height: 1.7;
+    margin-bottom: 1rem;
+}
+
+.ce-list {
+    padding-left: 1.2rem;
+    line-height: 1.7;
+}
+
+.ce-list li {
+    margin-bottom: .5rem;
+}
+
+.ce-block img {
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+a.ce-btn {
+    color: #fff;
+    border: 3px solid #fff;
+    padding: 1rem;
+    border-radius: .5rem;
+}
+
+/* ============================================
+   PAGE HERO (global)
+============================================ */
+.page-hero {
+    padding: 5rem 0;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .page-hero {
+        padding: 3rem 0;
+    }
+}

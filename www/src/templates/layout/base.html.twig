@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    {% block document_head %}
+        {% include 'document/head.html.twig' %}
+    {% endblock %}
+</head>
+
+<body>
+    {% block body %}
+        {% include 'body/header.html.twig' %}
+
+        <main id="main">
+            {% block content %}
+                 {{content|raw}}
+            {% endblock %}
+        </main>
+
+        {% include 'body/footer.html.twig' %}
+    {% endblock %}
+
+    {{ scripts_footer|raw }}
+</body>
+</html>

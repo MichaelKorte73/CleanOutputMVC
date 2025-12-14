@@ -1,0 +1,31 @@
+.module {
+    margin: 4rem 0;
+}
+
+.module-header {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.module-title {
+    font-size: clamp(1.6rem, 5vw, 3rem);
+    margin-bottom: .8rem;
+}
+
+.module-intro {
+    max-width: 720px;
+    margin: 0 auto;
+    opacity: .85;
+}
+
+.module-body {
+    margin-top: 2rem;
+}
+
+.module-result {
+    margin-top: 2rem;
+    padding: 1.6rem;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(47,255,255,0.25);
+}

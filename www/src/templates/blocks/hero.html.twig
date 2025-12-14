@@ -1,0 +1,16 @@
+{% set img = image_config('hero') %}
+
+<section class="ce-hero" role="region">
+
+   {{ image(
+            image.preset,
+            image.file,
+            image.alt
+        ) }}
+    
+
+    <div class="ce-hero__content">
+        <h1>{{ headline }}</h1>
+        <p>{{ text }}</p>
+    </div>
+</section>
