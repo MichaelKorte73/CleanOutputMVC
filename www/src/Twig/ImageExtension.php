@@ -109,12 +109,12 @@ final class ImageExtension extends AbstractExtension
 <picture>
     <source
         type="image/{$format}"
-        srcset="{$this->esc(implode(', ', \$srcset))}"
-        sizes="{$this->esc(\$sizes)}"
+        srcset="{$this->esc(implode(', ', $srcset))}"
+        sizes="{$this->esc($sizes)}"
     >
     <img
         src="{$fallback}"
-        alt="{$this->esc(\$alt)}"
+        alt="{$this->esc($alt)}"
         loading="{$loading}"
         decoding="async"
         fetchpriority="{$fetch}"

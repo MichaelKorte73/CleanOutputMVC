@@ -102,10 +102,15 @@ final class Bootstrap
          * Core / Infrastructure Services
          * --------------------------------------------------
          */
-        $app->setService(
-            'db',
-            new Database($config['db'])
-        );
+        // -----------------------------
+// Database (optional)
+// -----------------------------
+if (!empty($config['db']['enabled'])) {
+    $app->setService(
+        'db',
+        new Database($config['db'])
+    );
+}
 
         $app->setService(
             'request',
@@ -142,6 +147,7 @@ final class Bootstrap
          * Domain / Project Services
          * --------------------------------------------------
          */
+/*
         $app->setService(
             'slugGenerator',
             new SlugGenerator()
@@ -153,7 +159,7 @@ final class Bootstrap
                 $app->getService('db')->pdo()
             )
         );
-
+*/
         /**
          * --------------------------------------------------
          * Middleware (Guard Layer)

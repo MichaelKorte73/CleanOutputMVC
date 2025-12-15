@@ -56,42 +56,12 @@ class Router
      */
     protected function registerDefaultRoutes(): void
     {
-        /*
-        // Homepage
-        $this->router->map('GET', '/', [
-            'type'       => 'controller',
-            'controller' => 'HomeController',
-            'action'     => 'index',
-        ]);
-
-        // Shortener: Create
-        $this->router->map('POST', '/s', [
-            'type'       => 'controller',
-            'controller' => 'ShortenController',
-            'action'     => 'create',
-        ], 'shorten.create');
-
-        // Formular
-        $this->router->map('GET', '/shorten', [
-            'controller' => 'HomeController',
-            'action'     => 'index',
-        ]);
-
-        // Create
-        $this->router->map('POST', '/shorten', [
-            'controller' => 'ShortenController',
-            'action'     => 'create',
-        ]);
-        */
-
-        // Demo page
-        $this->router->map('GET', '/demo', [
-            'controller' => 'DemoController',
-            'action'     => 'index',
-        ]);
+        
+       
 
         // Slug resolve (explicit alpha slug)
-        $this->router->map('GET', '/[a:slug]', [
+        $this->router->map('GET', '/', [
+   'type'       => 'controller',
             'controller' => 'DemoController',
             'action'     => 'index',
         ]);
@@ -101,7 +71,7 @@ class Router
             'type'       => 'controller',
             'controller' => 'DemoController',
             'action'     => 'index',
-        ], 'shorten.resolve');
+        ]);
     }
 
     /**

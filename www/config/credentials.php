@@ -6,6 +6,7 @@
 
 return [
     'db' => [
+        'enabled' => false,
         'dsn'      => 'mysql:host=HOSTNAME;dbname=DBNAME;charset=utf8mb4',
         'user'     => 'DBUSR',
         'password' => 'PWD',
