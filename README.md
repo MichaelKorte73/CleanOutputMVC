@@ -1,136 +1,131 @@
-# Clean-Output-MVC
+# Clean Output MVC
 
-> **Status:** v0.1 (Foundation)  
-> **Focus:** Clean HTML Output · Performance · Accessibility · SEO  
-> **Not a CMS. Not a plugin platform. Not a feature collection.**
+**Status:** v0.1 (Work in Progress)  
+**Focus:** clean HTML output, performance, accessibility, SEO
 
----
+Clean Output MVC is a deliberately minimal MVC framework for projects
+where **output quality matters more than feature density**.
 
-## What is this?
-
-**Clean-Output-MVC** is a small, architecture-driven MVC framework  
-for projects where **output quality matters more than feature breadth**.
-
-It is built around a simple idea:
-
-> **HTML is not a side effect – it is the product.**
-
-The framework is intentionally strict to ensure:
-
-- predictable rendering  
-- clean, semantic HTML  
-- performance by default  
-- accessibility by structure  
-- explainable, testable behavior  
+It is not a CMS, not a page builder, and not a plugin ecosystem.
+It is a framework for developers who want full control over
+what is rendered, when it is rendered, and why.
 
 ---
 
 ## What problem does it solve?
 
-Many modern frameworks and CMS are excellent at handling **complex workflows**,  
-but often treat HTML output as an indirect result of layers, plugins and abstractions.
+Many modern frameworks are excellent systems — but they are rarely
+designed from the **output backwards**.
 
-Clean-Output-MVC focuses on a **much narrower problem space**:
+HTML often becomes a side effect of:
+- feature abstractions
+- editor workflows
+- plugin logic
+- implicit defaults
 
-- small to mid-sized sites  
-- performance-critical pages  
-- technically controlled layouts  
-- SEO- and accessibility-driven projects  
-- long-term maintainability over rapid feature growth  
+Clean Output MVC starts from the opposite direction:
 
----
-
-## Why another framework?
-
-There are many **very good and well-designed systems** out there.
-
-Frameworks like **Symfony** or **Laravel** provide powerful abstractions and ecosystems.  
-CMS solutions like **WordPress** or **TYPO3** solve real editorial problems at scale.
-
-**Clean-Output-MVC does not try to replace them.**
-
-### What those systems are great at
-
-- rich feature sets  
-- plugins and extensions  
-- editorial workflows  
-- rapid development across many use cases  
-
-### Where they often struggle (by design)
-
-- HTML output becomes indirect and hard to reason about  
-- performance and accessibility are often retrofitted  
-- rendering pipelines grow implicit and complex  
-- output quality depends on discipline, not structure  
-
-### What Clean-Output-MVC does instead
-
-- treats **HTML as the primary product**  
-- enforces a **deterministic render pipeline**  
-- separates state, rendering and assets strictly  
-- avoids plugin magic and hidden control flow  
-- stays small, explicit and predictable  
-
-> This framework is not *better*.  
-> It is **smaller, stricter and more focused**.
+> HTML is the product.  
+> Everything else is infrastructure.
 
 ---
 
-## What this is **not**
+## What this framework is
 
-- ❌ not a CMS  
-- ❌ not a page builder  
-- ❌ not a plugin ecosystem  
-- ❌ not designed for editorial freedom  
+- A small, explicit MVC framework
+- Server-side rendering by default
+- Deterministic rendering pipeline
+- Explicit asset handling (CSS & JS)
+- Performance- and accessibility-oriented by design
+- Strict architecture with controlled extension points
 
-If you need flexible content workflows or plugins,  
-a CMS is the right choice.
-
----
-
-## Core principles
-
-- **Core is infrastructure**  
-  Controllers, templates, blocks and JS modules are guests.
-
-- **Explicit over magic**  
-  No hidden defaults. No guess APIs.
-
-- **Deterministic rendering**  
-  One clear lifecycle. One output path.
-
-- **Stability before comfort**  
-  Architecture first. Tools later.
+Typical use cases:
+- performance-critical websites
+- technical landing pages
+- content-heavy sites with strict semantics
+- projects where SEO and accessibility are non-negotiable
 
 ---
 
-## Who should use this?
+## What this framework is not
 
-- Developers with architectural responsibility  
-- Freelancers and agencies building controlled sites  
-- Performance- and accessibility-focused projects  
-- Teams that prefer structure over convenience  
+- Not a CMS
+- Not a low-code tool
+- Not a rapid MVP generator
+- Not a plugin marketplace
+- Not a SPA framework
 
----
+If you need:
+- visual editors
+- free-form layouts
+- client-side application state
 
-## Status
-
-- Architecture: **stable**  
-- Block system: **active**  
-- Security layer: **active**  
-- JS lifecycle: **fixed**  
-- Version: **v0.1 (Foundation)**  
-
-The framework is intentionally small.  
-Future features will build **on top of this architecture**, not around it.
+then this is likely **not** the right tool.
 
 ---
 
-## Documentation
+## Architectural highlights (short version)
 
-Full architecture documentation lives outside this README  
-and explains the design decisions in detail.
+- **Controllers describe pages**, not HTML
+- **PageContext holds page state**, no rendering logic
+- **Renderer orchestrates output**, assets and templates
+- **Twig renders pure HTML**
+- **Blocks define structure**, not editors
+- **JavaScript is enhancement**, not an app layer
+- **Services are optional** and can be disabled gracefully
+- **Security happens before business logic**
 
-> This README sets expectations.  
-> The documentation explains the system.
-> 
+The architecture is strict by default —  
+but allows **explicit, documented deviations when necessary**.
+
+---
+
+## Comparison to existing systems
+
+There are excellent frameworks out there:
+Symfony, Laravel, WordPress, TYPO3, and many others.
+
+Clean Output MVC does not compete with them feature by feature.
+
+Its trade-off is different:
+
+| Focus | Typical frameworks | Clean Output MVC |
+|-----|--------------------|------------------|
+| Features | very high | deliberately limited |
+| Output control | flexible | explicit |
+| Performance | optimizable | default |
+| Accessibility | optional | built-in mindset |
+| Magic | common | avoided |
+
+This framework exists for projects where
+**small, clean, fast** is more important than convenience.
+
+---
+
+## Status & roadmap
+
+- v0.1: architectural foundation (stable)
+- No CMS features
+- No admin backend
+- No automatic validation pipeline
+
+Future versions may add:
+- system-level analysis tools (SEO, accessibility)
+- optional admin or tooling components
+- image and media processing services
+
+Only if they do not break the core principles.
+
+---
+
+## Philosophy (one sentence)
+
+> Strict by default.  
+> Explicit by design.  
+> Flexible only when justified.
+
+---
+
+## License
+
+MIT
