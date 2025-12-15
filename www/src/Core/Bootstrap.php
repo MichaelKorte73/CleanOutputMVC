@@ -1,4 +1,5 @@
 <?php
+
 namespace CHK\Core;
 
 use Twig\Environment;
@@ -15,79 +16,91 @@ use CHK\Repository\ShortUrlRepository;
 
 use CHK\Twig\ImageExtension;
 
+/**
+ * Bootstrap
+ *
+ * Responsible for:
+ * - loading configuration
+ * - wiring core services
+ * - initializing Twig
+ * - registering renderer & middleware
+ *
+ * Bootstrap MUST NOT:
+ * - contain business logic
+ * - render output
+ * - handle requests
+ *
+ * @author  Michael Korte
+ * @email   mkorte@korte-software.de
+ * @company Michael Korte Software
+ * @version 0.1
+ * @date    13.12.2025
+ */
 final class Bootstrap
 {
     /**
-     * --------------------------------------------------
-     * Load & merge config
-     * --------------------------------------------------
+     * Load and merge application configuration.
+     *
+     * - app.php is mandatory
+     * - credentials.php is optional and ignored if missing
+     *
+     * @return array
      */
     private static function loadConfig(): array
     {
         $appConfig = require __DIR__ . '/../../config/app.php';
 
         $credentialsFile = __DIR__ . '/../../config/credentials.php';
-        $credentials = [];
+        $credentials     = [];
 
         if (is_readable($credentialsFile)) {
             $credentials = require $credentialsFile;
         }
 
-        return array_replace_recursive(
-            $appConfig,
-            $credentials
-        );
+        return array_replace_recursive($appConfig, $credentials);
     }
 
     /**
-     * --------------------------------------------------
-     * Boot application
-     * --------------------------------------------------
+     * Boot the application and register all core services.
+     *
+     * @return App
      */
     public static function boot(): App
     {
         $config = self::loadConfig();
         $app    = new App($config);
 
-        
-
         /**
-         * -----------------------------
-         * Twig + View
-         * -----------------------------
+         * --------------------------------------------------
+         * Twig & View
+         * --------------------------------------------------
          */
-        
+        $twig = self::bootTwig($app);
 
+        // Project image extension (Twig)
+        $twig->addExtension(
+            new ImageExtension(
+                require __DIR__ . '/../../config/images.php'
+            )
+        );
 
-         $twig = self::bootTwig($app);
-
-$twig->addExtension(
-    new \CHK\Twig\ImageExtension(
-        require __DIR__ . '/../../config/images.php'
-    )
-);
-
-
-         $app->setService('twig', $twig);
-         $app->setService('view', new View($twig));
-
-         // optional, aber stabil
-         $app->setService('renderer', new Renderer($app));
+        $app->setService('twig', $twig);
+        $app->setService('view', new View($twig));
 
         /**
-         * -----------------------------
+         * --------------------------------------------------
          * Renderer (Output Orchestrator)
-         * -----------------------------
+         * --------------------------------------------------
          */
         $app->setService(
             'renderer',
             new Renderer($app)
         );
 
-/**
-         * -----------------------------
-         * Core / Infra Services
-         * -----------------------------
+        /**
+         * --------------------------------------------------
+         * Core / Infrastructure Services
+         * --------------------------------------------------
          */
         $app->setService(
             'db',
@@ -100,9 +113,9 @@ $twig->addExtension(
         );
 
         /**
-         * -----------------------------
+         * --------------------------------------------------
          * Renderer Services
-         * -----------------------------
+         * --------------------------------------------------
          */
         $app->setService(
             'imageRenderer',
@@ -119,15 +132,15 @@ $twig->addExtension(
             new ScriptRenderer($config['scripts'] ?? [])
         );
 
-$app->setService(
+        $app->setService(
             'blockRenderer',
             new BlockRenderer($twig)
         );
 
         /**
-         * -----------------------------
+         * --------------------------------------------------
          * Domain / Project Services
-         * -----------------------------
+         * --------------------------------------------------
          */
         $app->setService(
             'slugGenerator',
@@ -142,41 +155,45 @@ $app->setService(
         );
 
         /**
-         * -----------------------------
-         * Middleware 
-         * -----------------------------
+         * --------------------------------------------------
+         * Middleware (Guard Layer)
+         * --------------------------------------------------
          */
-
         $app->addMiddleware(
             new \CHK\Middleware\RateLimitMiddleware()
         );
 
         $app->addMiddleware(
-            new    \CHK\Middleware\MethodWhitelistMiddleware(['GET', 'POST'])
-);
+            new \CHK\Middleware\MethodWhitelistMiddleware(['GET', 'POST'])
+        );
 
         $app->addMiddleware(
             new \CHK\Middleware\PayloadSizeMiddleware(1_000_000)
-);
+        );
 
-$app->addMiddleware(
-    new \CHK\Middleware\AbuseBurstMiddleware(10, 2)
-);
+        $app->addMiddleware(
+            new \CHK\Middleware\AbuseBurstMiddleware(10, 2)
+        );
 
         return $app;
     }
 
-    
     /**
-     * --------------------------------------------------
-     * Twig setup
-     * --------------------------------------------------
+     * Setup Twig environment.
+     *
+     * Registers:
+     * - template loaders (project first, core second)
+     * - global Twig helpers
+     *
+     * @param App $app
+     * @return Environment
      */
     private static function bootTwig(App $app): Environment
     {
-        $loader = new FilesystemLoader(
-[__DIR__ . '/../../templates',
-__DIR__ . '/../templates']);
+        $loader = new FilesystemLoader([
+            __DIR__ . '/../../templates', // project templates
+            __DIR__ . '/../templates',    // core templates
+        ]);
 
         $twig = new Environment($loader, [
             'cache'      => false,
@@ -185,6 +202,8 @@ __DIR__ . '/../templates']);
 
         /**
          * image() Twig helper
+         *
+         * Thin proxy to ImageRenderer.
          */
         $twig->addFunction(
             new TwigFunction(

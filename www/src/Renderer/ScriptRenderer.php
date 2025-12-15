@@ -1,82 +1,115 @@
 <?php
+/**
+ * Clean Output MVC
+ *
+ * Script Renderer
+ *
+ * Renders JavaScript assets based on registered handles and groups.
+ * Supports inline scripts (filesystem) and external scripts.
+ * Ensures that the core script is always rendered first if present.
+ *
+ * @author    Michael Korte
+ * @email     mkorte@korte-software.de
+ * @company   Michael Korte Software
+ *
+ * @version   0.1
+ * @date      13.12.2025
+ *
+ * @package   CHK\Renderer
+ */
+
 namespace CHK\Renderer;
 
 final class ScriptRenderer
 {
-    /** @var array<string,array> */
+    /**
+     * Script configuration indexed by handle.
+     *
+     * @var array<string, array>
+     */
     private array $config;
 
+    /**
+     * @param array<string, array> $config
+     */
     public function __construct(array $config = [])
     {
         $this->config = $config;
     }
 
     /**
-     * @param string   $group   top|head|footer
-     * @param string[] $handles
+     * Render scripts for a given group.
+     *
+     * @param string   $group   Script group (top|head|footer)
+     * @param string[] $handles Script handles
+     *
+     * @return string Rendered <script> tags
      */
     public function renderGroup(string $group, array $handles = []): string
     {
-
         if (empty($handles) || empty($this->config)) {
             return '';
         }
 
-        $out = '';
+        $output = '';
 
-        // core immer zuerst (falls vorhanden)
+        // Ensure core is always rendered first (if present)
         if (in_array('core', $handles, true)) {
-            $handles = array_values(array_unique(array_merge(['core'], $handles)));
+            $handles = array_values(
+                array_unique(
+                    array_merge(['core'], $handles)
+                )
+            );
         }
 
         foreach ($handles as $handle) {
-
             if (!isset($this->config[$handle])) {
                 continue;
             }
 
-            $def = $this->config[$handle];
+            $definition = $this->config[$handle];
 
-            if (($def['group'] ?? 'footer') !== $group) {
-              continue;
+            if (($definition['group'] ?? 'footer') !== $group) {
+                continue;
             }
 
             // ----------------------------
-            // INLINE SCRIPT
+            // Inline script
             // ----------------------------
-            if (($def['type'] ?? 'inline') === 'inline') {
-                $path = dirname(__DIR__, 2) . '/'. $def['src'];
+            if (($definition['type'] ?? 'inline') === 'inline') {
+                $path = dirname(__DIR__, 2) . '/' . $definition['src'];
+
                 if (!is_readable($path)) {
                     continue;
                 }
 
-                $out .= "<script>\n"
-                     . file_get_contents($path)
-                     . "\n</script>\n";
+                $output .= "<script>\n"
+                    . file_get_contents($path)
+                    . "\n</script>\n";
 
                 continue;
             }
 
             // ----------------------------
-            // EXTERNAL SCRIPT
+            // External script
             // ----------------------------
-            if ($def['type'] === 'external') {
-                $attrs = '';
+            if ($definition['type'] === 'external') {
+                $attributes = '';
 
-                foreach ($def['attrs'] ?? [] as $k => $v) {
-                    $attrs .= is_bool($v)
-                        ? " {$k}"
-                        : " {$k}=\"" . htmlspecialchars($v, ENT_QUOTES, 'UTF-8') . "\"";
+                foreach ($definition['attrs'] ?? [] as $key => $value) {
+                    $attributes .= is_bool($value)
+                        ? " {$key}"
+                        : " {$key}=\"" . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . "\"";
                 }
 
-                $out .= sprintf(
+                $output .= sprintf(
                     '<script src="%s"%s></script>' . "\n",
-                    htmlspecialchars($def['src'], ENT_QUOTES, 'UTF-8'),
-                    $attrs
+                    htmlspecialchars($definition['src'], ENT_QUOTES, 'UTF-8'),
+                    $attributes
                 );
             }
         }
 
-        return $out;
+        return $output;
     }
 }

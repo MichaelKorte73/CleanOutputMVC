@@ -1,17 +1,15 @@
 <?php
-return [
 
+return [
     'base_path' => '/assets/img',
 
     'formats' => [
-        
         'webp',
     ],
 
     'widths' => [480, 768, 1024, 1440, 1920],
 
     'presets' => [
-
         'hero' => [
             'ratio'         => '16x9',
             'sizes'         => '100vw',

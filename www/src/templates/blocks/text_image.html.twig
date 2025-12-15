@@ -1,7 +1,20 @@
-<section class="ce ce-text-image ce-text-image--{{ block.data.imagePosition }}">
+{#
+    Text-Image Block
+    ----------------
+    Erwartete Variablen:
+    - title          : string (optional)
+    - text           : string (HTML, optional)
+    - image          : array {
+        preset : string
+        file   : string
+        alt    : string
+      }
+    - imagePosition  : string ('left' | 'right')
+#}
+
+<section class="ce ce-text-image ce-text-image--{{ imagePosition|default('left') }}">
+
     <div class="ce-text-image__media">
-
-
         {{ image(
             image.preset,
             image.file,
@@ -10,10 +23,15 @@
     </div>
 
     <div class="ce-text-image__content">
-        {% if block.data.title %}
+
+        {% if title is defined %}
             <h2>{{ title }}</h2>
         {% endif %}
 
-        {{ text|raw }}
+        {% if text is defined %}
+            {{ text|raw }}
+        {% endif %}
+
     </div>
+
 </section>

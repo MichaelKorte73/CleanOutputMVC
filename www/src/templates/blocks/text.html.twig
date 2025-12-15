@@ -1,4 +1,17 @@
-<section class="ce ce-text">text-image
+{#
+    Text Block
+    ----------
+    Erwartete Variablen:
+    - title   : string (optional)
+    - content : string (HTML, optional)
+
+    Hinweis:
+    - `content` wird bewusst mit `|raw` ausgegeben
+      (Controller / BlockRenderer sind für Sicherheit verantwortlich)
+#}
+
+<section class="ce ce-text">
+
     {% if title is defined %}
         <h2>{{ title }}</h2>
     {% endif %}
@@ -6,4 +19,5 @@
     {% if content is defined %}
         {{ content|raw }}
     {% endif %}
+
 </section>
