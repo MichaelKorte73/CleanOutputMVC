@@ -12,6 +12,15 @@ what is rendered, when it is rendered, and why.
 
 ---
 
+> 📘 **Tutorial (Work in Progress)**  
+> A detailed step-by-step introduction to Clean-Output-MVC is available here:  
+> **https://korte-software.de/tutorial/clean-output-mvc/teil-1**  
+>  
+> ⚠️ Note: The tutorial is currently **available in German only** and is **still under construction**.  
+> Content will be expanded and refined continuously.
+
+---
+
 ## What problem does it solve?
 
 Many modern frameworks are excellent systems — but they are rarely

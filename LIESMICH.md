@@ -12,6 +12,15 @@ was ausgeliefert wird – und warum.
 
 ---
 
+> 📘 **Tutorial (in Arbeit)**  
+> Eine ausführliche Schritt-für-Schritt-Einführung in Clean-Output-MVC findest du hier:  
+> **https://korte-software.de/tutorial/clean-output-mvc/teil-1**  
+>  
+> ⚠️ Hinweis: Das Tutorial befindet sich **noch im Aufbau**.  
+> Inhalte werden fortlaufend ergänzt und präzisiert.
+
+---
+
 ## Welches Problem wird gelöst?
 
 Viele moderne Frameworks sind hervorragende Systeme –
