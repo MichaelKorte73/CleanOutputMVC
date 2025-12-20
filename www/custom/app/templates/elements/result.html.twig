@@ -1,0 +1,14 @@
+{# RESULT #}
+
+    {% if data.result %}
+        <div class="short-result">
+            <label>Dein Kurzlink</label>
+            <input
+                type="text"
+                readonly
+                value="https://2chk.de{{ data.result
+ }}"
+                onclick="this.select()"
+            >
+        </div><br>
+    {% endif %}

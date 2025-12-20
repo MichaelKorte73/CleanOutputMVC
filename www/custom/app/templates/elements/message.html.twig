@@ -1,0 +1,9 @@
+
+{% if message is defined %}
+<div class="msg-box msg-{{ message.type|default('info') }}">
+    {% if message.title %}
+        <strong>{{ message.title }}</strong><br>
+    {% endif %}
+    {{ message.text }}
+</div>
+{% endif %}

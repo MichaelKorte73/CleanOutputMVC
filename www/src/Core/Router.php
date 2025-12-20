@@ -1,41 +1,12 @@
 <?php
-
 namespace CHK\Core;
 
 use AltoRouter;
 
-/**
- * Router
- *
- * Thin wrapper around AltoRouter.
- * Responsible only for:
- * - route registration
- * - normalizing AltoRouter match results
- *
- * The Router does NOT:
- * - execute controllers
- * - render responses
- * - apply middleware
- *
- * It always returns a normalized match array
- * so the App can act deterministically.
- *
- * @author  Michael Korte
- * @email   mkorte@korte-software.de
- * @company Michael Korte Software
- * @version 0.1
- * @date    13.12.2025
- */
-class Router
+final class Router
 {
-    /**
-     * Internal AltoRouter instance.
-     */
     private AltoRouter $router;
 
-    /**
-     * @param array $config Application config
-     */
     public function __construct(array $config)
     {
         $this->router = new AltoRouter();
@@ -43,48 +14,19 @@ class Router
         if (!empty($config['base_path'])) {
             $this->router->setBasePath($config['base_path']);
         }
+    }
 
-        $this->registerDefaultRoutes();
+    public function map(
+        string $method,
+        string $path,
+        array $target,
+        ?string $name = null
+    ): void {
+        $this->router->map($method, $path, $target, $name);
     }
 
     /**
-     * Register default routes.
-     *
-     * NOTE:
-     * - Order matters (catch-all routes MUST be last)
-     * - Project-specific routes may override or extend these
-     */
-    protected function registerDefaultRoutes(): void
-    {
-        
-       
-
-        // Slug resolve (explicit alpha slug)
-        $this->router->map('GET', '/', [
-   'type'       => 'controller',
-            'controller' => 'DemoController',
-            'action'     => 'index',
-        ]);
-
-        // Catch-all resolve (MUST be last!)
-        $this->router->map('GET', '/[*:slug]', [
-            'type'       => 'controller',
-            'controller' => 'DemoController',
-            'action'     => 'index',
-        ]);
-    }
-
-    /**
-     * Match the current request.
-     *
-     * ALWAYS returns a normalized structure.
-     *
-     * @return array{
-     *     type: string,
-     *     target?: array,
-     *     params?: array,
-     *     code?: int
-     * }
+     * Liefert IMMER ein normiertes Match-Array
      */
     public function match(): array
     {
@@ -104,23 +46,8 @@ class Router
         ];
     }
 
-    /**
-     * Normalize route target definitions.
-     *
-     * @param mixed $target
-     * @return array Normalized target definition
-     */
-    protected function normalizeTarget($target): array
+    private function normalizeTarget(mixed $target): array
     {
-        // Closure / Callable target
-        if (is_callable($target)) {
-            return [
-                'type'     => 'callable',
-                'callable' => $target,
-            ];
-        }
-
-        // Controller definition
         if (is_array($target)) {
             return [
                 'type'       => 'controller',

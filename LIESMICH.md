@@ -1,6 +1,7 @@
 # Clean Output MVC
 
-**Status:** v0.1 (Work in Progress)  
+**Status:** v0.2 erreicht  
+**Reifegrad:** Architektur stabil, aktiv in Nutzung  
 **Fokus:** sauberer HTML-Output, Performance, Accessibility, SEO
 
 Clean Output MVC ist ein bewusst reduziertes MVC-Framework
@@ -12,12 +13,14 @@ was ausgeliefert wird – und warum.
 
 ---
 
-> 📘 **Tutorial (in Arbeit)**  
-> Eine ausführliche Schritt-für-Schritt-Einführung in Clean-Output-MVC findest du hier:  
-> **https://korte-software.de/tutorial/clean-output-mvc/teil-1**  
+> 📘 **Tutorial (v0.2 abgeschlossen)**  
+> Eine ausführliche, zusammenhängende Einführung (18 Teile)
+> findest du hier:  
 >  
-> ⚠️ Hinweis: Das Tutorial befindet sich **noch im Aufbau**.  
-> Inhalte werden fortlaufend ergänzt und präzisiert.
+> 👉 https://korte-software.de/tutorial/clean-output-mvc/teil-1  
+>  
+> Das Tutorial dokumentiert bewusst nicht nur *wie*,
+> sondern *warum* architektonische Entscheidungen getroffen wurden.
 
 ---
 
@@ -84,6 +87,14 @@ ist dieses Framework **nicht** die richtige Wahl.
 - **Services sind optional** und dürfen fehlen
 - **Security passiert vor der Business-Logik**
 
+Ab v0.2 zusätzlich eingeführt:
+
+- **App** als expliziter Orchestrator
+- **Components** für fachliche Capabilities
+- **Plugins** für Beobachtung & Querschnitt
+- deterministisches Routing ohne Auto-Discovery
+- expliziter Bootstrap & klarer Lifecycle
+
 Die Architektur ist bewusst streng –
 aber erlaubt **explizite, dokumentierte Abweichungen**, wenn nötig.
 
@@ -113,10 +124,8 @@ bei denen **klein, sauber und schnell** wichtiger ist als Komfort.
 
 ## Status & Ausblick
 
-- v0.1: Architektur-Fundament (stabil)
-- kein CMS
-- kein Admin-Backend
-- keine automatische Validierung
+- v0.1: Architektur-Fundament
+- v0.2: Architektur angewendet & bewiesen
 
 Spätere Versionen **können** beinhalten:
 - systemnahe Analyse-Tools (SEO, Accessibility)

@@ -1,29 +1,16 @@
-{#
-    Hero Block
-    -----------
-    Erwartete Variablen:
-    - headline : string
-    - text     : string
-    - image    : {
-        preset : string,
-        file   : string,
-        alt    : string
-      }
-
-    Bildausgabe erfolgt über die Twig-Extension `image()`
-#}
+{% set img = image_config('hero') %}
 
 <section class="ce-hero" role="region">
 
-    {{ image(
-        image.preset,
-        image.file,
-        image.alt
-    ) }}
+   {{ image(
+            image.preset,
+            image.file,
+            image.alt
+        ) }}
+    
 
     <div class="ce-hero__content">
         <h1>{{ headline }}</h1>
         <p>{{ text }}</p>
     </div>
-
 </section>

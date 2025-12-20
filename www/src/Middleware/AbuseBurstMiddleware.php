@@ -1,118 +1,49 @@
 <?php
-/**
- * Clean Output MVC
- *
- * Abuse Burst Protection Middleware
- *
- * Protects the application against short-term request bursts
- * by limiting the number of requests per IP + User-Agent
- * within a defined time window.
- *
- * This middleware is intentionally simple and memory-based:
- * - suitable for early abuse protection
- * - no persistence
- * - no external storage (Redis, DB, etc.)
- *
- * It is designed as a guard-layer middleware and must run
- * early in the middleware pipeline.
- *
- * @author    Michael Korte
- * @email     mkorte@korte-software.de
- * @company   Michael Korte Software
- *
- * @version   0.1
- * @date      13.12.2025
- *
- * @package   CHK\Middleware
- */
 
 namespace CHK\Middleware;
 
 use CHK\Core\MiddlewareInterface;
-use CHK\Core\Response;
 
-final class AbuseBurstMiddleware implements MiddlewareInterface
+/**
+ * AbuseBurstMiddleware
+ *
+ * Guard-Middleware zur Erkennung von kurzfristigen Request-Bursts
+ * (z. B. sehr viele Requests in sehr kurzer Zeit).
+ *
+ * Arbeitet bewusst ausschließlich auf Transport-/Context-Ebene.
+ */
+class AbuseBurstMiddleware implements MiddlewareInterface
 {
     /**
-     * Maximum allowed hits within the time window.
+     * Maximale Anzahl Requests im Zeitfenster.
      *
      * @var int
      */
-    private int $maxHits;
+    protected int $maxRequests = 20;
 
     /**
-     * Time window in seconds.
+     * Zeitfenster in Sekunden.
      *
      * @var int
      */
-    private int $window;
+    protected int $timeWindow = 5;
 
     /**
-     * In-memory hit storage.
-     *
-     * Keyed by hash(IP + User-Agent).
-     *
-     * @var array<string, array{count:int, ts:int}>
-     */
-    private static array $hits = [];
-
-    /**
-     * @param int $maxHits Maximum requests allowed
-     * @param int $window  Time window in seconds
-     */
-    public function __construct(int $maxHits = 10, int $window = 2)
-    {
-        $this->maxHits = $maxHits;
-        $this->window  = $window;
-    }
-
-    /**
-     * Handle middleware execution.
-     *
-     * @param array    $context Middleware context (must contain request)
-     * @param callable $next    Next middleware callback
-     *
+     * @param array    $context
+     * @param callable $next
      * @return mixed
      */
     public function handle(array $context, callable $next): mixed
     {
-        $request = $context['request'] ?? null;
+        // Transport-nahe IP-Ermittlung (bewusste Zwischenlösung)
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
-        // If no request is present, skip abuse protection
-        if (!$request) {
-            return $next($context);
-        }
-
-        $ip    = $request->getIp() ?? 'unknown';
-        $agent = substr(
-            $request->getHeader('User-Agent') ?? 'na',
-            0,
-            120
-        );
-
-        $key = sha1($ip . '|' . $agent);
-        $now = time();
-
-        $entry = self::$hits[$key] ?? [
-            'count' => 0,
-            'ts'    => $now,
-        ];
-
-        // Window expired → reset counter
-        if ($now - $entry['ts'] > $this->window) {
-            $entry = [
-                'count' => 0,
-                'ts'    => $now,
-            ];
-        }
-
-        $entry['count']++;
-        self::$hits[$key] = $entry;
-
-        // Rate limit exceeded
-        if ($entry['count'] > $this->maxHits) {
-            return Response::tooManyRequests();
-        }
+        // TODO:
+        // - Burst-Zähler implementieren (z. B. Cache / File / Memory)
+        // - Zeitfenster berücksichtigen
+        // - Bei Überschreitung: Response abbrechen (429)
+        //
+        // Aktuell: Middleware ist aktiv, aber transparent.
 
         return $next($context);
     }

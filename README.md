@@ -1,6 +1,7 @@
 # Clean Output MVC
 
-**Status:** v0.1 (Work in Progress)  
+**Status:** v0.2 reached  
+**Maturity:** Architecture stable, actively developed  
 **Focus:** clean HTML output, performance, accessibility, SEO
 
 Clean Output MVC is a deliberately minimal MVC framework for projects
@@ -12,12 +13,15 @@ what is rendered, when it is rendered, and why.
 
 ---
 
-> 📘 **Tutorial (Work in Progress)**  
-> A detailed step-by-step introduction to Clean-Output-MVC is available here:  
-> **https://korte-software.de/tutorial/clean-output-mvc/teil-1**  
+> 📘 **Tutorial (v0.2 complete, German)**  
+> A detailed architectural walkthrough (18 parts) is available here:  
 >  
-> ⚠️ Note: The tutorial is currently **available in German only** and is **still under construction**.  
-> Content will be expanded and refined continuously.
+> 👉 https://korte-software.de/tutorial/clean-output-mvc/teil-1  
+>  
+> The tutorial documents not just *how* things are built,
+> but *why* architectural decisions were made.
+>  
+> ⚠️ Note: The tutorial is currently **German only**.
 
 ---
 
@@ -81,8 +85,16 @@ then this is likely **not** the right tool.
 - **Twig renders pure HTML**
 - **Blocks define structure**, not editors
 - **JavaScript is enhancement**, not an app layer
-- **Services are optional** and can be disabled gracefully
+- **Services are optional** and degrade gracefully
 - **Security happens before business logic**
+
+As of v0.2 the framework introduces:
+
+- An explicit **App layer** as lifecycle orchestrator
+- **Components** for domain-level capabilities
+- **Plugins** for observation and cross-cutting concerns
+- Deterministic routing without auto-discovery
+- A fully explicit bootstrap and render pipeline
 
 The architecture is strict by default —  
 but allows **explicit, documented deviations when necessary**.
@@ -113,12 +125,10 @@ This framework exists for projects where
 
 ## Status & roadmap
 
-- v0.1: architectural foundation (stable)
-- No CMS features
-- No admin backend
-- No automatic validation pipeline
+- v0.1: architectural foundation
+- v0.2: architecture applied and proven (App, Components, Plugins)
 
-Future versions may add:
+Possible future additions:
 - system-level analysis tools (SEO, accessibility)
 - optional admin or tooling components
 - image and media processing services

@@ -1,29 +1,12 @@
 .msg-box {
-    margin: 1.5rem auto;
     padding: 1.2rem 1.4rem;
-
-    max-width: 720px;
-
-    text-align: center;
     border-radius: 8px;
+    margin: 1.5rem auto;
+    max-width: 720px;
+    text-align: center;
 }
 
-.msg-info {
-    background: #223;
-    color: #ccf;
-}
-
-.msg-success {
-    background: #1e3;
-    color: #000;
-}
-
-.msg-warning {
-    background: #432;
-    color: #ffc;
-}
-
-.msg-danger {
-    background: #432;
-    color: #ffb4b4;
-}
+.msg-info    { background:#223; color:#ccf; }
+.msg-success { background:#1e3; color:#000; }
+.msg-warning { background:#432; color:#ffc; }
+.msg-danger  { background:#432; color:#ffb4b4; }

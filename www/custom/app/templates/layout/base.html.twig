@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+
+<html lang="de">
+
+<head>
+
+    {{ scripts_top }}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ page.title }}</title>
+
+    {% if page.description %}
+        <meta name="description" content="{{ page.description }}">
+    {% endif %}
+
+    {{ styles | raw}}
+    {{ scripts_head }}
+</head>
+
+<body>
+
+    {% include "layout/header.html.twig" %}
+
+    <main class="chk-container">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% include "layout/footer.html.twig" %}
+
+    {{ scripts_footer |raw}}
+
+</body>
+</html>

@@ -1,14 +1,6 @@
-{#
-    Alert Block
-    -----------
-    Erwartete Variablen:
-    - level   : string (info | warning | error)
-    - content : string (HTML oder Text)
-#}
-
 <div
-    class="ce ce-alert ce-alert--{{ level|default('info') }}"
+    class="ce ce-alert ce-alert--{{ block.data.level }}"
     role="alert"
 >
-    {{ content|raw }}
+    {{ block.data.content }}
 </div>

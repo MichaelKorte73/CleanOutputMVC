@@ -1,24 +1,24 @@
+
 {% extends "layout/base.html.twig" %}
 
 {% block content %}
-<section class="hero-shortener">
+    
+    <section class="hero-shortener">
     <div class="container">
 
-        {# Brand #}
-        
+         {% include "elements/2chkbrand.html.twig" %}
 
-        {# System messages (if any)#}
-        {% include "elements/message.html.twig" %}
-
-        {# Error message #}
-        <div class="msg-box danger">
-            <h2>Error 404</h2>
-        </div>
-
-        {# Back to start #}
-        
+{% include "elements/message.html.twig" %}
+         <div class="msg-box danger">
+<h2>Wonach, zum Teufel, hast du gesucht???</h2>
+<p>Das gibt es hier nicht.</p>
+</div>
+        <a class="ce-btn" href="/">Zum Start...</a>
+<br>
+        <p class="hero-hint"><br>Kostenlos. Gönn dir.</p>
 
         
+
     </div>
 </section>
 {% endblock %}
