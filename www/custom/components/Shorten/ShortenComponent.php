@@ -18,4 +18,8 @@ final class ShortenComponent implements ComponentInterface
     {
         (new Routes())->registerRoutes($app->getRouter());
     }
+
+public function capabilities(): array{
+return [];
+}
 }

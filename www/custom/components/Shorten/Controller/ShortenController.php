@@ -84,4 +84,5 @@ final class ShortenController extends Controller
 
         return $this->render('shorten.html.twig', $page);
     }
+
 }

@@ -1,15 +1,35 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * Clean Output MVC
+ *
+ * Core Application
+ *
+ * Zentrale Runtime des Frameworks.
+ * Verantwortlich für:
+ * - Lifecycle (Bootstrap → Routing → Controller → Response)
+ * - Verwaltung von Services
+ * - Registrierung von Components & Plugins
+ * - Capability-Registry (v0.3 Vorbereitung)
+ *
+ * @package   CHK\Core
+ * @author    Michael Korte
+ * @license   MIT
+ */
+
 namespace CHK\Core;
 
-use CHK\Core\Response;
 use CHK\Logging\LoggerInterface;
 use CHK\Logging\NullLogger;
 use CHK\Logging\LogLevel;
 
 final class App
 {
+    /* ----------------------------------------
+       CORE STATE
+    ---------------------------------------- */
+
     private array $config;
     private Router $router;
     private PageContext $page;
@@ -25,6 +45,19 @@ final class App
     /** @var PluginInterface[] */
     private array $plugins = [];
 
+    /**
+     * Capability Registry
+     *
+     * key   = capability name
+     * value = providing component class (string)
+     *
+     * Beispiel:
+     *  [
+     *      'media.manage' => MediaComponent::class
+     *  ]
+     */
+    private array $capabilities = [];
+
     private bool $extensionsRegistered = false;
 
     public function __construct(array $config)
@@ -36,10 +69,14 @@ final class App
         $this->hooks      = new HookManager();
     }
 
-    // -------------------------------------------------
-    // EXTENSIONS (Components / Plugins)
-    // -------------------------------------------------
+    /* ----------------------------------------
+       EXTENSIONS (Components / Plugins)
+    ---------------------------------------- */
 
+    /**
+     * Components liefern fachliche Capabilities
+     * und dürfen sich explizit am Core registrieren.
+     */
     public function addComponent(ComponentInterface $component): self
     {
         $this->components[] = $component;
@@ -58,7 +95,8 @@ final class App
     }
 
     /**
-     * Registrierung ist explizit und passiert genau einmal pro Request
+     * Registrierung erfolgt genau einmal pro Request.
+     * Keine Auto-Discovery, keine implizite Magie.
      */
     public function registerExtensions(): void
     {
@@ -83,16 +121,51 @@ final class App
         }
     }
 
-    // -------------------------------------------------
-    // APPLICATION LIFECYCLE
-    // -------------------------------------------------
+    /* ----------------------------------------
+       CAPABILITIES (v0.3 Grundlage)
+    ---------------------------------------- */
+
+    /**
+     * Registriert eine Capability.
+     * Wird typischerweise von Components aufgerufen.
+     */
+    public function registerCapability(string $name, string $provider): void
+    {
+        if (isset($this->capabilities[$name])) {
+            throw new \RuntimeException(
+                "Capability '{$name}' already registered"
+            );
+        }
+
+        $this->capabilities[$name] = $provider;
+    }
+
+    /**
+     * Prüft, ob eine Capability existiert.
+     */
+    public function hasCapability(string $name): bool
+    {
+        return isset($this->capabilities[$name]);
+    }
+
+    /**
+     * Liefert alle registrierten Capabilities.
+     */
+    public function getCapabilities(): array
+    {
+        return $this->capabilities;
+    }
+
+    /* ----------------------------------------
+       APPLICATION LIFECYCLE
+    ---------------------------------------- */
 
     public function run(): void
     {
         $logger = $this->getLogger();
         $logger->log(LogLevel::INFO, 'core', self::class, 'App run start');
 
-        // Extensions (Routes / Hooks)
+        // Components & Plugins müssen VOR Routing aktiv sein
         $this->registerExtensions();
 
         Security::apply($this->config);
@@ -145,13 +218,11 @@ final class App
 
             $response = $this->middleware->handle(
                 $context,
-                function (array $ctx) use ($controller, $action) {
-                    return $controller->$action($ctx['params'] ?? []);
-                }
+                fn (array $ctx) => $controller->$action($ctx['params'] ?? [])
             );
 
             /**
-             * 🔥 Controller-Contract v0.3
+             * Controller-Contract v0.3
              * null = Controller hat Response selbst ausgegeben
              */
             if ($response === null) {
@@ -162,16 +233,12 @@ final class App
             return;
         }
 
-        $logger->log(LogLevel::ERROR, 'core', self::class, 'Invalid route target', [
-            'target' => $target,
-        ]);
-
         throw new \RuntimeException('Invalid route target');
     }
 
-    // -------------------------------------------------
-    // RESPONSE HANDLING
-    // -------------------------------------------------
+    /* ----------------------------------------
+       RESPONSE
+    ---------------------------------------- */
 
     private function sendResponse(mixed $response, int $status = 200): void
     {
@@ -192,9 +259,9 @@ final class App
         );
     }
 
-    // -------------------------------------------------
-    // CONFIG
-    // -------------------------------------------------
+    /* ----------------------------------------
+       CONFIG
+    ---------------------------------------- */
 
     public function config(?string $key = null, mixed $default = null): mixed
     {
@@ -205,14 +272,9 @@ final class App
         return $this->config[$key] ?? $default;
     }
 
-    public function hasConfig(string $key): bool
-    {
-        return array_key_exists($key, $this->config);
-    }
-
-    // -------------------------------------------------
-    // SERVICES
-    // -------------------------------------------------
+    /* ----------------------------------------
+       SERVICES
+    ---------------------------------------- */
 
     public function setService(string $id, mixed $service): void
     {
@@ -221,7 +283,7 @@ final class App
 
     public function getService(string $id): mixed
     {
-        if (!array_key_exists($id, $this->services)) {
+        if (!isset($this->services[$id])) {
             throw new \RuntimeException("Service '{$id}' not registered");
         }
 
@@ -230,7 +292,7 @@ final class App
 
     public function hasService(string $id): bool
     {
-        return array_key_exists($id, $this->services);
+        return isset($this->services[$id]);
     }
 
     public function getLogger(): LoggerInterface
@@ -245,14 +307,14 @@ final class App
         return new NullLogger();
     }
 
+    /* ----------------------------------------
+       CORE ACCESSORS
+    ---------------------------------------- */
+
     public function getHooks(): HookManager
     {
         return $this->hooks;
     }
-
-    // -------------------------------------------------
-    // CORE ACCESSORS
-    // -------------------------------------------------
 
     public function getPage(): PageContext
     {
@@ -264,9 +326,9 @@ final class App
         return $this->router;
     }
 
-    // -------------------------------------------------
-    // MIDDLEWARE
-    // -------------------------------------------------
+    /* ----------------------------------------
+       MIDDLEWARE
+    ---------------------------------------- */
 
     public function addMiddleware(MiddlewareInterface $middleware): void
     {
