@@ -115,16 +115,12 @@ final class App
             $plugin->register($this->hooks, $this);
         }
 
-        /**
-         * 🔔 Lifecycle-Hook:
-         * Alle Components & Plugins sind registriert,
-         * aber es wurde noch kein Request verarbeitet.
-         */
+        // 🔔 Lifecycle-Hook
         $this->hooks->doAction('components.ready', $this);
     }
 
     /* ----------------------------------------
-       CAPABILITIES (Registry)
+       CAPABILITIES
     ---------------------------------------- */
 
     public function registerCapability(string $name, string $provider): void
@@ -147,10 +143,6 @@ final class App
     {
         return $this->capabilities;
     }
-
-    /* ----------------------------------------
-       CAPABILITIES (Enforcement)
-    ---------------------------------------- */
 
     public function can(string $capability): bool
     {
@@ -190,6 +182,7 @@ final class App
 
         $match = $this->router->match();
 
+        // ---------- FALLBACK ----------
         if (($match['type'] ?? null) === 'fallback') {
             $fallbacks = $this->config('fallbacks', []);
             $fallback  = $fallbacks[$match['code']] ?? null;
@@ -209,34 +202,30 @@ final class App
             return;
         }
 
-        $target = $match['target'];
+        // ---------- ROUTE ----------
+        $route  = $match['route'];
         $params = $match['params'] ?? [];
 
-        if (($target['type'] ?? null) === 'controller') {
-            $controller = new $target['controller']($this);
-            $action     = $target['action'] ?? 'index';
+        $controller = new $route['controller']($this);
+        $action     = $route['action'] ?? 'index';
 
-            $context = [
-                'app'     => $this,
-                'params'  => $params,
-                'request' => $this->hasService('request')
-                    ? $this->getService('request')
-                    : Request::fromGlobals(),
-            ];
+        $context = [
+            'app'     => $this,
+            'route'   => $route,
+            'params'  => $params,
+            'request' => $this->hasService('request')
+                ? $this->getService('request')
+                : Request::fromGlobals(),
+        ];
 
-            $response = $this->middleware->handle(
-                $context,
-                fn (array $ctx) => $controller->$action($ctx['params'] ?? [])
-            );
+        $response = $this->middleware->handle(
+            $context,
+            fn (array $ctx) => $controller->$action($ctx['params'] ?? [])
+        );
 
-            if ($response !== null) {
-                $this->sendResponse($response);
-            }
-
-            return;
+        if ($response !== null) {
+            $this->sendResponse($response);
         }
-
-        throw new \RuntimeException('Invalid route target');
     }
 
     /* ----------------------------------------

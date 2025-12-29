@@ -48,19 +48,20 @@ final class CapabilityMiddleware implements MiddlewareInterface
      * Prüft deklarierte Route-Capabilities gegen die
      * registrierten Capabilities im Core.
      *
-     * Erwartet im Routing-Target optional:
+     * Erwartet im Request-Kontext:
      *
      *  [
-     *      'capabilities' => [
-     *          'media.read',
-     *          'media.write'
+     *      'route' => [
+     *          'controller'   => string,
+     *          'action'        => string,
+     *          'capabilities'  => string[]|null
      *      ]
      *  ]
      *
      * @param array    $context  Request-Kontext der Middleware-Pipeline
      *                           Erwartete Keys:
-     *                           - app     (App)
-     *                           - target  (array|null)
+     *                           - app   (App)
+     *                           - route (array|null)
      *
      * @param callable $next     Nächste Middleware / Controller
      *
@@ -74,12 +75,12 @@ final class CapabilityMiddleware implements MiddlewareInterface
         /** @var App $app */
         $app = $context['app'];
 
-        $target = $context['target'] ?? null;
-        if (!is_array($target)) {
+        $route = $context['route'] ?? null;
+        if (!is_array($route)) {
             return $next($context);
         }
 
-        $required = $target['capabilities'] ?? null;
+        $required = $route['capabilities'] ?? null;
         if (!$required || !is_array($required)) {
             return $next($context);
         }

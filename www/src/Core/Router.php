@@ -1,4 +1,24 @@
 <?php
+declare(strict_types=1);
+
+/**
+ * Clean Output MVC
+ *
+ * Router
+ *
+ * Dünner Wrapper um AltoRouter.
+ * Liefert ein strikt normiertes Match-Array,
+ * inklusive vorbereiteter Route-Metadaten.
+ *
+ * ❗ Keine Logik im Router
+ * ❗ Keine Capabilities-Prüfung
+ * ❗ Nur Struktur & Normalisierung
+ *
+ * @package   CHK\Core
+ * @author    Michael Korte
+ * @license   MIT
+ */
+
 namespace CHK\Core;
 
 use AltoRouter;
@@ -16,6 +36,17 @@ final class Router
         }
     }
 
+    /**
+     * Registriert eine Route.
+     *
+     * Erwartetes Target-Schema:
+     * [
+     *   'controller'   => FQCN,
+     *   'action'       => 'index',
+     *   'capabilities' => ['media.read'],
+     *   'area'         => 'admin'|'frontend',
+     * ]
+     */
     public function map(
         string $method,
         string $path,
@@ -26,7 +57,7 @@ final class Router
     }
 
     /**
-     * Liefert IMMER ein normiertes Match-Array
+     * Liefert IMMER ein normiertes Match-Array.
      */
     public function match(): array
     {
@@ -35,7 +66,10 @@ final class Router
         if ($match) {
             return [
                 'type'   => 'route',
-                'target' => $this->normalizeTarget($match['target']),
+                'route'  => $this->normalizeRoute(
+                    $match['target'],
+                    $match['name'] ?? null
+                ),
                 'params' => $match['params'] ?? [],
             ];
         }
@@ -46,16 +80,21 @@ final class Router
         ];
     }
 
-    private function normalizeTarget(mixed $target): array
+    /**
+     * Normalisiert das Route-Target in eine feste Struktur.
+     */
+    private function normalizeRoute(mixed $target, ?string $name): array
     {
-        if (is_array($target)) {
-            return [
-                'type'       => 'controller',
-                'controller' => $target['controller'] ?? null,
-                'action'     => $target['action'] ?? null,
-            ];
+        if (!is_array($target)) {
+            throw new \RuntimeException('Invalid route target');
         }
 
-        throw new \RuntimeException('Invalid route target');
+        return [
+            'controller'   => $target['controller'] ?? null,
+            'action'       => $target['action'] ?? 'index',
+            'capabilities' => $target['capabilities'] ?? null,
+            'area'         => $target['area'] ?? 'frontend',
+            'name'         => $name,
+        ];
     }
 }
