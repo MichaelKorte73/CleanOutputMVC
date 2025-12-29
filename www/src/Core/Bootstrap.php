@@ -20,13 +20,15 @@ use CHK\Logging\Target\FileTarget;
 
 use CHK\Service\SlugGenerator;
 use CHK\Repository\ShortUrlRepository;
-
 use CHK\Twig\ImageExtension;
 
 use App\AppRoutes;
 
 final class Bootstrap
 {
+    /* ----------------------------------------
+       CONFIG
+    ---------------------------------------- */
     private static function loadConfig(): array
     {
         $appConfig = require __DIR__ . '/../../config/app.php';
@@ -41,8 +43,13 @@ final class Bootstrap
         return array_replace_recursive($appConfig, $credentials);
     }
 
+    /* ----------------------------------------
+       BOOT
+    ---------------------------------------- */
     public static function boot(): App
     {
+        self::enforceCanonicalUrl();
+
         $config = self::loadConfig();
         $app    = new App($config);
 
@@ -84,7 +91,20 @@ final class Bootstrap
         /* ---------------- Infra Services ---------------- */
 
         if (!empty($config['db'])) {
-            $app->setService('db', new Database($config['db']));
+            try {
+                $app->setService('db', new Database($config['db']));
+            } catch (\PDOException $e) {
+                $logger->log(
+                    LogLevel::CRITICAL,
+                    'core',
+                    Bootstrap::class,
+                    'Database connection failed',
+                    ['exception' => $e->getMessage()]
+                );
+
+                // expliziter Failure-State (kein stilles Weiterlaufen)
+                $app->setService('dbUnavailable', true);
+            }
         }
 
         $app->setService('request', Request::fromGlobals());
@@ -137,6 +157,9 @@ final class Bootstrap
         return $app;
     }
 
+    /* ----------------------------------------
+       TWIG
+    ---------------------------------------- */
     private static function bootTwig(App $app): Environment
     {
         $loader = new FilesystemLoader([
@@ -161,9 +184,43 @@ final class Bootstrap
                     ->getService('imageRenderer')
                     ->render($preset, $name, $alt, $overrides),
                 ['is_safe' => ['html']]
-            ) 
+            )
         );
 
         return $twig;
+    }
+
+    /* ----------------------------------------
+       CANONICAL URL (Trailing Slash)
+    ---------------------------------------- */
+    private static function enforceCanonicalUrl(): void
+    {
+        if (php_sapi_name() === 'cli') {
+            return;
+        }
+
+        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        if (!in_array($method, ['GET', 'HEAD'], true)) {
+            return;
+        }
+
+        $uri  = $_SERVER['REQUEST_URI'] ?? '/';
+        $path = parse_url($uri, PHP_URL_PATH) ?? '/';
+
+        if ($path === '/') {
+            return;
+        }
+
+        if (str_ends_with($path, '/')) {
+            $target = rtrim($path, '/');
+
+            $query = $_SERVER['QUERY_STRING'] ?? '';
+            if ($query !== '') {
+                $target .= '?' . $query;
+            }
+
+            header('Location: ' . $target, true, 301);
+            exit;
+        }
     }
 }

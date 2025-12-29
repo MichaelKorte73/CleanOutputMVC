@@ -39,13 +39,15 @@ final class App
     // -------------------------------------------------
     // EXTENSIONS (Components / Plugins)
     // -------------------------------------------------
+
     public function addComponent(ComponentInterface $component): self
     {
         $this->components[] = $component;
         return $this;
     }
 
-    public function getComponents(){
+    public function getComponents(): array
+    {
         return $this->components;
     }
 
@@ -56,14 +58,14 @@ final class App
     }
 
     /**
-     * Registrierung ist bewusst explizit und passiert einmal pro Request,
-     * kontrolliert von der App (kein Auto-Discovery, keine Magie).
+     * Registrierung ist explizit und passiert genau einmal pro Request
      */
     public function registerExtensions(): void
     {
         if ($this->extensionsRegistered) {
             return;
         }
+
         $this->extensionsRegistered = true;
 
         $logger = $this->getLogger();
@@ -84,12 +86,13 @@ final class App
     // -------------------------------------------------
     // APPLICATION LIFECYCLE
     // -------------------------------------------------
+
     public function run(): void
     {
         $logger = $this->getLogger();
         $logger->log(LogLevel::INFO, 'core', self::class, 'App run start');
 
-        // Components/Plugins müssen VOR Routing aktiv sein (Routes/Hooks)
+        // Extensions (Routes / Hooks)
         $this->registerExtensions();
 
         Security::apply($this->config);
@@ -107,36 +110,18 @@ final class App
             $fallback  = $fallbacks[$match['code']] ?? null;
 
             if (!$fallback) {
-                $logger->log(LogLevel::WARNING, 'core', self::class, 'No fallback configured', [
-                    'code' => $match['code'] ?? 404,
-                ]);
                 Response::html('404 Not Found', 404);
                 return;
             }
 
-            $controllerClass = $fallback['controller'];
-            $action          = $fallback['action'];
-            $status          = $fallback['status'] ?? 404;
+            $controller = new $fallback['controller']($this);
+            $response   = $controller->{$fallback['action']}([]);
 
-            if (!class_exists($controllerClass)) {
-                $logger->log(LogLevel::ERROR, 'core', self::class, 'Fallback controller missing', [
-                    'controller' => $controllerClass,
-                ]);
-                throw new \RuntimeException('Fallback controller not found');
+            if ($response === null) {
+                return;
             }
 
-            $controller = new $controllerClass($this);
-
-            if (!method_exists($controller, $action)) {
-                $logger->log(LogLevel::ERROR, 'core', self::class, 'Fallback action missing', [
-                    'controller' => $controllerClass,
-                    'action'     => $action,
-                ]);
-                throw new \RuntimeException('Fallback action not found');
-            }
-
-            $response = $controller->$action([]);
-            $this->sendResponse($response, $status);
+            $this->sendResponse($response, $fallback['status'] ?? 404);
             return;
         }
 
@@ -145,47 +130,33 @@ final class App
         $params = $match['params'] ?? [];
 
         if (($target['type'] ?? null) === 'controller') {
-            $controllerClass = $target['controller'];
-            $action          = $target['action'] ?? 'index';
+            $controller = new $target['controller']($this);
+            $action     = $target['action'] ?? 'index';
 
-            if (!class_exists($controllerClass)) {
-                $logger->log(LogLevel::ERROR, 'core', self::class, 'Controller not found', [
-                    'controller' => $controllerClass,
-                ]);
-                throw new \RuntimeException(
-                    "Controller {$controllerClass} not found"
-                );
-            }
-
-            $controller = new $controllerClass($this);
-
-            if (!method_exists($controller, $action)) {
-                $logger->log(LogLevel::ERROR, 'core', self::class, 'Action not found on controller', [
-                    'controller' => $controllerClass,
-                    'action'     => $action,
-                ]);
-                throw new \RuntimeException(
-                    "Action {$action} not found on {$controllerClass}"
-                );
-            }
-
-            $logger->log(LogLevel::INFO, 'core', self::class, 'Dispatch controller', [
-                'controller' => $controllerClass,
-                'action'     => $action,
-            ]);
-
-            // Middleware-Pipeline (Guards) – Renderer bleibt unberührt.
             $context = [
                 'app'     => $this,
                 'match'   => $match,
                 'target'  => $target,
                 'params'  => $params,
-                'request' => $this->hasService('request') ? $this->getService('request') : Request::fromGlobals(),
+                'request' => $this->hasService('request')
+                    ? $this->getService('request')
+                    : Request::fromGlobals(),
             ];
 
-            $response = $this->middleware->handle($context, function (array $ctx) use ($controller, $action) {
-                return $controller->$action($ctx['params'] ?? []);
-            });
+            $response = $this->middleware->handle(
+                $context,
+                function (array $ctx) use ($controller, $action) {
+                    return $controller->$action($ctx['params'] ?? []);
+                }
+            );
+
+            /**
+             * 🔥 Controller-Contract v0.3
+             * null = Controller hat Response selbst ausgegeben
+             */
+            if ($response === null) {
+                return;
+            }
 
             $this->sendResponse($response);
             return;
@@ -201,14 +172,10 @@ final class App
     // -------------------------------------------------
     // RESPONSE HANDLING
     // -------------------------------------------------
+
     private function sendResponse(mixed $response, int $status = 200): void
     {
         $this->hooks->doAction('app.ready', $this, $response, $status);
-
-        if ($response === null) {
-            http_response_code($status);
-            return;
-        }
 
         if (is_array($response)) {
             Response::json($response, $status);
@@ -228,22 +195,14 @@ final class App
     // -------------------------------------------------
     // CONFIG
     // -------------------------------------------------
+
     public function config(?string $key = null, mixed $default = null): mixed
     {
         if ($key === null) {
             return $this->config;
         }
 
-        if (!array_key_exists($key, $this->config)) {
-            if (func_num_args() === 2) {
-                return $default;
-            }
-            throw new \RuntimeException(
-                "Config key '{$key}' not found"
-            );
-        }
-
-        return $this->config[$key];
+        return $this->config[$key] ?? $default;
     }
 
     public function hasConfig(string $key): bool
@@ -254,6 +213,7 @@ final class App
     // -------------------------------------------------
     // SERVICES
     // -------------------------------------------------
+
     public function setService(string $id, mixed $service): void
     {
         $this->services[$id] = $service;
@@ -262,9 +222,7 @@ final class App
     public function getService(string $id): mixed
     {
         if (!array_key_exists($id, $this->services)) {
-            throw new \RuntimeException(
-                "Service '{$id}' not registered"
-            );
+            throw new \RuntimeException("Service '{$id}' not registered");
         }
 
         return $this->services[$id];
@@ -283,6 +241,7 @@ final class App
                 return $logger;
             }
         }
+
         return new NullLogger();
     }
 
@@ -294,6 +253,7 @@ final class App
     // -------------------------------------------------
     // CORE ACCESSORS
     // -------------------------------------------------
+
     public function getPage(): PageContext
     {
         return $this->page;
@@ -307,6 +267,7 @@ final class App
     // -------------------------------------------------
     // MIDDLEWARE
     // -------------------------------------------------
+
     public function addMiddleware(MiddlewareInterface $middleware): void
     {
         $this->middleware->add($middleware);

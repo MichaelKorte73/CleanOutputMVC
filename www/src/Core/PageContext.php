@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace CHK\Core;
 
 final class PageContext
@@ -22,6 +24,11 @@ final class PageContext
     private array $scripts = [];
 
     // -------------------------------------------------
+    // BLOCKS (explizit, v0.3 sauber)
+    // -------------------------------------------------
+    private array $blocks = [];
+
+    // -------------------------------------------------
     // META
     // -------------------------------------------------
     public function withStatus(int $status): self
@@ -29,18 +36,25 @@ final class PageContext
         $this->status = $status;
         return $this;
     }
-    public function withGlobals(){
-        $this->addStyle('reset')
-->addStyle('base')
-->addStyle('typography')
-->addStyle('grid')
-->addStyle('layout')
-->addStyle('helpers')
-->addScript('core')
-;
+
+    /**
+     * Opt-in Global Assets (Admin / Base Layouts)
+     * Bewusst pragmatisch, keine Magie
+     */
+    public function withGlobals(): self
+    {
+        $this
+            ->addStyle('reset')
+            ->addStyle('base')
+            ->addStyle('typography')
+            ->addStyle('grid')
+            ->addStyle('layout')
+            ->addStyle('helpers')
+            ->addScript('core');
 
         return $this;
-    } 
+    }
+
     public function withMeta(string $title, ?string $description = null): self
     {
         $this->title       = $title;
@@ -94,15 +108,17 @@ final class PageContext
         return $this->viewData;
     }
 
-// PageContext
-public function withBlocks(array $blocks): self
-{
-    $this->blocks = $blocks;
-    return $this;
-}
+    // -------------------------------------------------
+    // BLOCKS
+    // -------------------------------------------------
+    public function withBlocks(array $blocks): self
+    {
+        $this->blocks = $blocks;
+        return $this;
+    }
 
-public function getBlocks(): array
-{
-    return $this->blocks ?? [];
-}
+    public function getBlocks(): array
+    {
+        return $this->blocks;
+    }
 }
