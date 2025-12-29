@@ -45,8 +45,9 @@ final class Bootstrap
 
     /* ----------------------------------------
        BOOT
+       → liefert App ODER null (harte Failure-Policy)
     ---------------------------------------- */
-    public static function boot(): App
+    public static function boot(): ?App
     {
         self::enforceCanonicalUrl();
 
@@ -71,6 +72,29 @@ final class Bootstrap
 
         $app->setService('logger', $logger);
 
+        /* ---------------- Database (HARD GUARD) ---------------- */
+
+        if (!empty($config['db'])) {
+            try {
+                $app->setService('db', new Database($config['db']));
+            } catch (\PDOException $e) {
+                $logger->log(
+                    LogLevel::CRITICAL,
+                    'core',
+                    self::class,
+                    'Database connection failed',
+                    ['exception' => $e->getMessage()]
+                );
+
+                // ❌ App darf NICHT starten
+                return null;
+            }
+        }
+
+        /* ---------------- Request ---------------- */
+
+        $app->setService('request', Request::fromGlobals());
+
         /* ---------------- Twig / View ---------------- */
 
         $twig = self::bootTwig($app);
@@ -88,33 +112,24 @@ final class Bootstrap
 
         $app->setService('renderer', new Renderer($app));
 
-        /* ---------------- Infra Services ---------------- */
-
-        if (!empty($config['db'])) {
-            try {
-                $app->setService('db', new Database($config['db']));
-            } catch (\PDOException $e) {
-                $logger->log(
-                    LogLevel::CRITICAL,
-                    'core',
-                    Bootstrap::class,
-                    'Database connection failed',
-                    ['exception' => $e->getMessage()]
-                );
-
-                // expliziter Failure-State (kein stilles Weiterlaufen)
-                $app->setService('dbUnavailable', true);
-            }
-        }
-
-        $app->setService('request', Request::fromGlobals());
-
         /* ---------------- Renderer Services ---------------- */
 
-        $app->setService('imageRenderer', new ImageRenderer($config['images'] ?? []));
-        $app->setService('styleRenderer', new StyleRenderer($config['styles'] ?? []));
-        $app->setService('scriptRenderer', new ScriptRenderer($config['scripts'] ?? []));
-        $app->setService('blockRenderer', new BlockRenderer($twig));
+        $app->setService(
+            'imageRenderer',
+            new ImageRenderer($config['images'] ?? [])
+        );
+        $app->setService(
+            'styleRenderer',
+            new StyleRenderer($config['styles'] ?? [])
+        );
+        $app->setService(
+            'scriptRenderer',
+            new ScriptRenderer($config['scripts'] ?? [])
+        );
+        $app->setService(
+            'blockRenderer',
+            new BlockRenderer($twig)
+        );
 
         /* ---------------- Project Services ---------------- */
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 ini_set('display_errors', '1');
 
 /**
- * 1️⃣ Composer laden, falls vorhanden
+ * 1️⃣ Composer Autoload
  */
 $composerAutoload = __DIR__ . '/../vendor/autoload.php';
 if (is_file($composerAutoload)) {
@@ -12,8 +12,7 @@ if (is_file($composerAutoload)) {
 }
 
 /**
- * 2️⃣ Eigenen Autoloader IMMER registrieren
- *    (aber er greift nur, wenn Composer etwas NICHT geliefert hat)
+ * 2️⃣ Interner Autoloader
  */
 require __DIR__ . '/../src/Core/Autoload.php';
 
@@ -25,18 +24,23 @@ require __DIR__ . '/../src/Core/Autoload.php';
 ]);
 
 /**
- * 3️⃣ Optional: harte Validierung (empfohlen)
- *    → schützt vor halbfertigen Composer-Setups
+ * 3️⃣ Bootstrap prüfen
  */
 if (!class_exists(\CHK\Core\Bootstrap::class)) {
     throw new RuntimeException(
-        'Autoload failed: CHK\Core\Bootstrap not found. ' .
-        'Composer autoload incomplete and internal autoload failed.'
+        'Autoload failed: CHK\Core\Bootstrap not found.'
     );
 }
 
 /**
- * 4️⃣ Bootstrap starten
+ * 4️⃣ App booten
  */
 $app = \CHK\Core\Bootstrap::boot();
+
+if ($app === null) {
+    http_response_code(503);
+    require __DIR__ . '/error/db-unavailable.php';
+    exit;
+}
+
 $app->run();
