@@ -11,7 +11,7 @@ declare(strict_types=1);
  * - Lifecycle (Bootstrap → Routing → Controller → Response)
  * - Verwaltung von Services
  * - Registrierung von Components & Plugins
- * - Capability-Registry (v0.3 Vorbereitung)
+ * - Capability Registry & Enforcement (v0.3)
  *
  * @package   CHK\Core
  * @author    Michael Korte
@@ -49,12 +49,7 @@ final class App
      * Capability Registry
      *
      * key   = capability name
-     * value = providing component class (string)
-     *
-     * Beispiel:
-     *  [
-     *      'media.manage' => MediaComponent::class
-     *  ]
+     * value = providing component class
      */
     private array $capabilities = [];
 
@@ -70,13 +65,9 @@ final class App
     }
 
     /* ----------------------------------------
-       EXTENSIONS (Components / Plugins)
+       EXTENSIONS
     ---------------------------------------- */
 
-    /**
-     * Components liefern fachliche Capabilities
-     * und dürfen sich explizit am Core registrieren.
-     */
     public function addComponent(ComponentInterface $component): self
     {
         $this->components[] = $component;
@@ -96,7 +87,6 @@ final class App
 
     /**
      * Registrierung erfolgt genau einmal pro Request.
-     * Keine Auto-Discovery, keine implizite Magie.
      */
     public function registerExtensions(): void
     {
@@ -122,13 +112,9 @@ final class App
     }
 
     /* ----------------------------------------
-       CAPABILITIES (v0.3 Grundlage)
+       CAPABILITIES (Registry)
     ---------------------------------------- */
 
-    /**
-     * Registriert eine Capability.
-     * Wird typischerweise von Components aufgerufen.
-     */
     public function registerCapability(string $name, string $provider): void
     {
         if (isset($this->capabilities[$name])) {
@@ -140,20 +126,55 @@ final class App
         $this->capabilities[$name] = $provider;
     }
 
-    /**
-     * Prüft, ob eine Capability existiert.
-     */
     public function hasCapability(string $name): bool
     {
         return isset($this->capabilities[$name]);
     }
 
-    /**
-     * Liefert alle registrierten Capabilities.
-     */
     public function getCapabilities(): array
     {
         return $this->capabilities;
+    }
+
+    /* ----------------------------------------
+       CAPABILITIES (Enforcement)
+    ---------------------------------------- */
+
+    /**
+     * Prüft, ob die Capability im aktuellen Kontext erlaubt ist.
+     *
+     * Core delegiert die Entscheidung an den PermissionResolver.
+     * Keine Rollen-, User- oder UI-Logik im Core.
+     */
+    public function can(string $capability): bool
+    {
+        if (!$this->hasCapability($capability)) {
+            return false;
+        }
+
+        if (!$this->hasService('permissionResolver')) {
+            // Default: erlaubt, wenn niemand einschränkt
+            return true;
+        }
+
+        $resolver = $this->getService('permissionResolver');
+
+        return $resolver->isAllowed($capability, $this);
+    }
+
+    /**
+     * Erzwingt eine Capability.
+     *
+     * Wird typischerweise im Controller oder Middleware genutzt.
+     * Policy (Exception / Redirect / 403) ist bewusst minimal.
+     */
+    public function requireCapability(string $capability): void
+    {
+        if (!$this->can($capability)) {
+            throw new \RuntimeException(
+                "Capability '{$capability}' is not allowed in current context"
+            );
+        }
     }
 
     /* ----------------------------------------
@@ -165,19 +186,11 @@ final class App
         $logger = $this->getLogger();
         $logger->log(LogLevel::INFO, 'core', self::class, 'App run start');
 
-        // Components & Plugins müssen VOR Routing aktiv sein
         $this->registerExtensions();
-
         Security::apply($this->config);
 
         $match = $this->router->match();
 
-        $logger->log(LogLevel::DEBUG, 'core', self::class, 'Router match', [
-            'type' => $match['type'] ?? null,
-            'code' => $match['code'] ?? null,
-        ]);
-
-        // ---------- FALLBACK ----------
         if (($match['type'] ?? null) === 'fallback') {
             $fallbacks = $this->config('fallbacks', []);
             $fallback  = $fallbacks[$match['code']] ?? null;
@@ -190,15 +203,13 @@ final class App
             $controller = new $fallback['controller']($this);
             $response   = $controller->{$fallback['action']}([]);
 
-            if ($response === null) {
-                return;
+            if ($response !== null) {
+                $this->sendResponse($response, $fallback['status'] ?? 404);
             }
 
-            $this->sendResponse($response, $fallback['status'] ?? 404);
             return;
         }
 
-        // ---------- NORMAL ROUTE ----------
         $target = $match['target'];
         $params = $match['params'] ?? [];
 
@@ -208,8 +219,6 @@ final class App
 
             $context = [
                 'app'     => $this,
-                'match'   => $match,
-                'target'  => $target,
                 'params'  => $params,
                 'request' => $this->hasService('request')
                     ? $this->getService('request')
@@ -221,15 +230,10 @@ final class App
                 fn (array $ctx) => $controller->$action($ctx['params'] ?? [])
             );
 
-            /**
-             * Controller-Contract v0.3
-             * null = Controller hat Response selbst ausgegeben
-             */
-            if ($response === null) {
-                return;
+            if ($response !== null) {
+                $this->sendResponse($response);
             }
 
-            $this->sendResponse($response);
             return;
         }
 
@@ -257,19 +261,6 @@ final class App
         throw new \RuntimeException(
             'Unsupported response type: ' . gettype($response)
         );
-    }
-
-    /* ----------------------------------------
-       CONFIG
-    ---------------------------------------- */
-
-    public function config(?string $key = null, mixed $default = null): mixed
-    {
-        if ($key === null) {
-            return $this->config;
-        }
-
-        return $this->config[$key] ?? $default;
     }
 
     /* ----------------------------------------
@@ -308,7 +299,7 @@ final class App
     }
 
     /* ----------------------------------------
-       CORE ACCESSORS
+       ACCESSORS
     ---------------------------------------- */
 
     public function getHooks(): HookManager
@@ -325,10 +316,6 @@ final class App
     {
         return $this->router;
     }
-
-    /* ----------------------------------------
-       MIDDLEWARE
-    ---------------------------------------- */
 
     public function addMiddleware(MiddlewareInterface $middleware): void
     {

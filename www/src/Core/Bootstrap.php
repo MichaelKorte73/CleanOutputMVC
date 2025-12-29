@@ -163,12 +163,15 @@ final class Bootstrap
         }
 
         /* ---------------- Middleware ---------------- */
+$app->addMiddleware(new \CHK\Middleware\CapabilityMiddleware());
 
-        $app->addMiddleware(new \CHK\Middleware\RateLimitMiddleware());
-        $app->addMiddleware(new \CHK\Middleware\MethodWhitelistMiddleware(['GET', 'POST']));
-        $app->addMiddleware(new \CHK\Middleware\PayloadSizeMiddleware(1_000_000));
-        $app->addMiddleware(new \CHK\Middleware\AbuseBurstMiddleware(10, 2));
+$app->addMiddleware(new \CHK\Middleware\MethodWhitelistMiddleware(['GET', 'POST']));
 
+$app->addMiddleware(new \CHK\Middleware\PayloadSizeMiddleware(1_000_000));
+
+$app->addMiddleware(new \CHK\Middleware\RateLimitMiddleware());
+
+$app->addMiddleware(new \CHK\Middleware\AbuseBurstMiddleware(10, 2));
         return $app;
     }
 
