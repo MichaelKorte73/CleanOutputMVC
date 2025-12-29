@@ -87,6 +87,11 @@ final class App
 
     /**
      * Registrierung erfolgt genau einmal pro Request.
+     *
+     * Reihenfolge:
+     * 1. Components::register()
+     * 2. Plugins::register()
+     * 3. 🔔 Hook: components.ready
      */
     public function registerExtensions(): void
     {
@@ -109,6 +114,13 @@ final class App
         foreach ($this->plugins as $plugin) {
             $plugin->register($this->hooks, $this);
         }
+
+        /**
+         * 🔔 Lifecycle-Hook:
+         * Alle Components & Plugins sind registriert,
+         * aber es wurde noch kein Request verarbeitet.
+         */
+        $this->hooks->doAction('components.ready', $this);
     }
 
     /* ----------------------------------------
@@ -140,12 +152,6 @@ final class App
        CAPABILITIES (Enforcement)
     ---------------------------------------- */
 
-    /**
-     * Prüft, ob die Capability im aktuellen Kontext erlaubt ist.
-     *
-     * Core delegiert die Entscheidung an den PermissionResolver.
-     * Keine Rollen-, User- oder UI-Logik im Core.
-     */
     public function can(string $capability): bool
     {
         if (!$this->hasCapability($capability)) {
@@ -153,7 +159,6 @@ final class App
         }
 
         if (!$this->hasService('permissionResolver')) {
-            // Default: erlaubt, wenn niemand einschränkt
             return true;
         }
 
@@ -162,12 +167,6 @@ final class App
         return $resolver->isAllowed($capability, $this);
     }
 
-    /**
-     * Erzwingt eine Capability.
-     *
-     * Wird typischerweise im Controller oder Middleware genutzt.
-     * Policy (Exception / Redirect / 403) ist bewusst minimal.
-     */
     public function requireCapability(string $capability): void
     {
         if (!$this->can($capability)) {
