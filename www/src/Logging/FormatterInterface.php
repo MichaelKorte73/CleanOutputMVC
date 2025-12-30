@@ -1,25 +1,57 @@
 <?php
-namespace CHK\Logging;
-
-use CHK\Logging\LogEntry;
+declare(strict_types=1);
 
 /**
- * Defines a stable, parser-safe log format.
+ * Clean Output MVC
+ *
+ * Log Formatter Interface
+ *
+ * Vertrag für Log-Formatter.
+ *
+ * Aufgabe:
+ * - Definiert ein stabiles, parser-sicheres Log-Format
+ * - Trennt Log-Daten von deren Darstellung
+ *
+ * ❗ WICHTIG:
+ * - Formatter erzeugen STRINGS
+ * - KEINE Persistenz
+ * - KEINE Log-Level-Filterung
+ *
+ * Formatter sitzen zwischen
+ * LogEntry und Target.
+ *
+ * @package   CHK\Logging
+ * @author    Michael Korte
+ * @license   MIT
  */
+
+namespace CHK\Logging;
+
 interface FormatterInterface
 {
     /**
-     * Returns the format identifier (e.g. "line", "json").
+     * Liefert die Kennung des Formats
+     * (z. B. "line", "json").
+     *
+     * @return string
      */
     public function getFormatId(): string;
 
     /**
-     * Returns the format version.
+     * Liefert die Versionsnummer des Formats.
+     *
+     * Ermöglicht parser-sichere Weiterentwicklung.
+     *
+     * @return int
      */
     public function getFormatVersion(): int;
 
     /**
-     * Formats a log entry into a string.
+     * Formatiert einen Log-Eintrag.
+     *
+     * @param LogEntry $entry
+     *
+     * @return string
      */
     public function format(LogEntry $entry): string;
 }

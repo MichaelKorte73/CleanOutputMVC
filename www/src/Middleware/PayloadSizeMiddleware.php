@@ -1,27 +1,54 @@
 <?php
+declare(strict_types=1);
+
+/**
+ * Clean Output MVC
+ *
+ * Payload Size Middleware
+ *
+ * Systemnahe Guard-Middleware zur Begrenzung der
+ * maximal erlaubten Request-Payload-Größe.
+ *
+ * Aufgabe:
+ * - Schutz vor übergroßen Request-Bodies
+ * - Früher Abbruch auf Transport-Ebene
+ *
+ * ❗ WICHTIG:
+ * - KEINE User- oder Rollenlogik
+ * - KEINE Business-Validierung
+ * - KEIN Parsing des Payloads
+ *
+ * Diese Middleware prüft ausschließlich
+ * die deklarierte Payload-Größe (CONTENT_LENGTH).
+ *
+ * Enforcement:
+ * - HTTP 413 (Payload Too Large)
+ * - harter Abbruch (exit)
+ *
+ * @package   CHK\Middleware
+ * @author    Michael Korte
+ * @license   MIT
+ */
 
 namespace CHK\Middleware;
 
 use CHK\Core\MiddlewareInterface;
 
-/**
- * PayloadSizeMiddleware
- *
- * Guard-Middleware zur Begrenzung der Request-Payload-Größe.
- * Arbeitet bewusst ausschließlich auf Transport-/Context-Ebene.
- */
-class PayloadSizeMiddleware implements MiddlewareInterface
+final class PayloadSizeMiddleware implements MiddlewareInterface
 {
     /**
      * Maximale erlaubte Payload-Größe in Bytes.
      *
      * @var int
      */
-    protected int $maxPayloadSize = 1048576; // 1 MB
+    protected int $maxPayloadSize = 1_048_576; // 1 MB
 
     /**
-     * @param array    $context
-     * @param callable $next
+     * Prüft die Größe des eingehenden Request-Payloads.
+     *
+     * @param array    $context  Request-Kontext der Middleware-Pipeline
+     * @param callable $next     Nächste Middleware / Controller
+     *
      * @return mixed
      */
     public function handle(array $context, callable $next): mixed
@@ -33,7 +60,7 @@ class PayloadSizeMiddleware implements MiddlewareInterface
 
         if ($contentLength > $this->maxPayloadSize) {
             // TODO:
-            // - Sauberen 413-Response erzeugen
+            // - Einheitliche Error-Response (Response::?)
             // - Optional: Logging
             http_response_code(413);
             exit;

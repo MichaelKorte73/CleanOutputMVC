@@ -1,6 +1,33 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * Clean Output MVC
+ *
+ * Media Helper
+ *
+ * Systemnaher Helper zur Analyse und Verwaltung
+ * von Medien-Dateien (Images) im Projekt.
+ *
+ * Aufgabe:
+ * - Auflisten unbearbeiteter Medien (Input)
+ * - Auflisten veröffentlichter Medien (Assets)
+ * - Gruppierung von generierten Bildvarianten
+ * - Löschen von Medien-Dateien
+ *
+ * ❗ WICHTIG:
+ * - KEINE Bildverarbeitung
+ * - KEINE Generierung von Assets
+ * - KEINE Rendering-Logik
+ *
+ * MediaHelper dient ausschließlich der
+ * Dateisystem-nahen Analyse und Pflege.
+ *
+ * @package   CHK\Helper
+ * @author    Michael Korte
+ * @license   MIT
+ */
+
 namespace CHK\Helper;
 
 use CHK\Core\App;
@@ -16,22 +43,41 @@ final class MediaHelper
 
     public function __construct(App $app)
     {
-        $this->app   = $app;
-        $imageCfg    = $app->config('images', []);
+        $this->app = $app;
+        $imageCfg  = $app->config('images', []);
 
-        $this->paths        = $imageCfg['paths'] ?? [];
-        $this->projectRoot  = rtrim($app->config('project_root', dirname(__DIR__, 3)), '/');
-        $this->publicRoot   = rtrim($app->config('public_root', $this->projectRoot . '/public'), '/');
-        $this->assetBasePath = rtrim((string)($imageCfg['base_path'] ?? ''), '/');
+        $this->paths         = $imageCfg['paths'] ?? [];
+        $this->projectRoot   = rtrim(
+            $app->config('project_root', dirname(__DIR__, 3)),
+            '/'
+        );
+        $this->publicRoot    = rtrim(
+            $app->config('public_root', $this->projectRoot . '/public'),
+            '/'
+        );
+        $this->assetBasePath = rtrim(
+            (string) ($imageCfg['base_path'] ?? ''),
+            '/'
+        );
     }
 
     /**
-     * unprocessed | public
+     * Liefert Media-Listen anhand eines Keys.
+     *
+     * Unterstützte Keys:
+     * - unprocessed
+     * - public
+     *
+     * @param string $key
+     *
+     * @return array
      */
     public function getMedia(string $key): array
     {
         if (!isset($this->paths[$key])) {
-            throw new InvalidArgumentException("Unknown media key: {$key}");
+            throw new InvalidArgumentException(
+                "Unknown media key: {$key}"
+            );
         }
 
         return match ($key) {
@@ -71,13 +117,16 @@ final class MediaHelper
 
     private function scanAssets(): array
     {
-        $pathFromCfg = (string)($this->paths['public'] ?? '');
+        $pathFromCfg = (string) ($this->paths['public'] ?? '');
 
         if (str_starts_with($pathFromCfg, '/public/')) {
             $pathFromCfg = substr($pathFromCfg, 7);
         }
 
-        $dir = rtrim($this->publicRoot . '/' . ltrim($pathFromCfg, '/'), '/');
+        $dir = rtrim(
+            $this->publicRoot . '/' . ltrim($pathFromCfg, '/'),
+            '/'
+        );
 
         if (!is_dir($dir)) {
             return [];
@@ -115,7 +164,7 @@ final class MediaHelper
 
             $groups[$id]['files'][] = $file;
 
-            if ($groups[$id]['thumb'] === null && (int)$m['size'] <= 480) {
+            if ($groups[$id]['thumb'] === null && (int) $m['size'] <= 480) {
                 $groups[$id]['thumb'] =
                     $this->assetBasePath . '/' . $file;
             }
@@ -124,16 +173,24 @@ final class MediaHelper
         return array_values($groups);
     }
 
+    /**
+     * Liefert sortierte Asset-Identifier.
+     *
+     * @return string[]
+     */
     public function getAssetIdentifiers(): array
     {
         $assets = $this->getMedia('public');
 
         $ids = array_map(
-            static fn (array $img) => (string)($img['identifier'] ?? ''),
+            static fn (array $img) => (string) ($img['identifier'] ?? ''),
             $assets
         );
 
-        $ids = array_values(array_filter($ids, static fn (string $v) => $v !== ''));
+        $ids = array_values(
+            array_filter($ids, static fn (string $v) => $v !== '')
+        );
+
         sort($ids);
 
         return $ids;
@@ -151,8 +208,11 @@ final class MediaHelper
 
     public function deleteAsset(string $identifier): void
     {
-        $pathFromCfg = (string)($this->paths['public'] ?? '');
-        $dir = rtrim($this->publicRoot . '/' . ltrim($pathFromCfg, '/'), '/');
+        $pathFromCfg = (string) ($this->paths['public'] ?? '');
+        $dir = rtrim(
+            $this->publicRoot . '/' . ltrim($pathFromCfg, '/'),
+            '/'
+        );
 
         if (!is_dir($dir)) {
             return;

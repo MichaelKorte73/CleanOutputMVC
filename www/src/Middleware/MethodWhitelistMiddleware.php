@@ -1,19 +1,45 @@
 <?php
+declare(strict_types=1);
+
+/**
+ * Clean Output MVC
+ *
+ * Method Whitelist Middleware
+ *
+ * Systemnahe Guard-Middleware zur Einschränkung
+ * erlaubter HTTP-Methoden.
+ *
+ * Aufgabe:
+ * - Blockiert Requests mit nicht erlaubten HTTP-Methoden
+ * - Schutz auf Transport-Ebene
+ *
+ * ❗ WICHTIG:
+ * - KEINE User- oder Rollenlogik
+ * - KEINE Business-Entscheidungen
+ * - KEINE Authentifizierung
+ *
+ * Diese Middleware prüft ausschließlich
+ * die HTTP-Methode des Requests.
+ *
+ * Enforcement:
+ * - HTTP 405 (Method Not Allowed)
+ * - harter Abbruch (exit)
+ *
+ * @package   CHK\Middleware
+ * @author    Michael Korte
+ * @license   MIT
+ */
 
 namespace CHK\Middleware;
 
 use CHK\Core\MiddlewareInterface;
 
-/**
- * MethodWhitelistMiddleware
- *
- * Guard-Middleware zur Einschränkung erlaubter HTTP-Methoden.
- * Arbeitet bewusst ausschließlich auf Transport-/Context-Ebene.
- */
-class MethodWhitelistMiddleware implements MiddlewareInterface
+final class MethodWhitelistMiddleware implements MiddlewareInterface
 {
     /**
-     * @var array
+     * Erlaubte HTTP-Methoden.
+     *
+     * @var string[]
      */
     protected array $allowedMethods = [
         'GET',
@@ -21,21 +47,23 @@ class MethodWhitelistMiddleware implements MiddlewareInterface
     ];
 
     /**
-     * @param array    $context
-     * @param callable $next
+     * Prüft die HTTP-Methode des Requests.
+     *
+     * @param array    $context  Request-Kontext der Middleware-Pipeline
+     * @param callable $next     Nächste Middleware / Controller
+     *
      * @return mixed
      */
     public function handle(array $context, callable $next): mixed
     {
         // Transport-nahe Ermittlung der HTTP-Methode
-        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-        $method = strtoupper($method);
+        $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 
         if (!in_array($method, $this->allowedMethods, true)) {
             // TODO:
-            // - Sauberen 405-Response erzeugen
+            // - Einheitliche Error-Response (Response::?)
             // - Allow-Header setzen
-            // - ggf. Logging
+            // - Optional: Logging
             http_response_code(405);
             exit;
         }

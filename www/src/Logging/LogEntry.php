@@ -1,11 +1,34 @@
 <?php
-namespace CHK\Logging;
+declare(strict_types=1);
 
 /**
- * Immutable log entry.
+ * Clean Output MVC
  *
- * Represents a single logging event before formatting.
+ * Log Entry
+ *
+ * Immutable Value-Object zur Repräsentation
+ * eines einzelnen Log-Ereignisses.
+ *
+ * Aufgabe:
+ * - Kapselt alle Informationen eines Log-Eintrags
+ * - Wird vor der Formatierung erzeugt
+ *
+ * ❗ WICHTIG:
+ * - IMMUTABLE (keine Setter)
+ * - KEINE Formatierungslogik
+ * - KEINE Persistenz
+ *
+ * LogEntry dient ausschließlich als
+ * Datencontainer zwischen Logger,
+ * Formatter und Target.
+ *
+ * @package   CHK\Logging
+ * @author    Michael Korte
+ * @license   MIT
  */
+
+namespace CHK\Logging;
+
 final class LogEntry
 {
     private float $timestamp;
@@ -33,36 +56,59 @@ final class LogEntry
         $this->context   = $context;
     }
 
+    /**
+     * Zeitpunkt der Erstellung (Unix-Timestamp mit Mikrosekunden).
+     */
     public function getTimestamp(): float
     {
         return $this->timestamp;
     }
 
+    /**
+     * Numerischer Log-Level (Bitmask).
+     */
     public function getLevel(): int
     {
         return $this->level;
     }
 
+    /**
+     * Name des Log-Levels.
+     */
     public function getLevelName(): string
     {
         return $this->levelName;
     }
 
+    /**
+     * Log-Scope (z. B. app, core, security).
+     */
     public function getScope(): string
     {
         return $this->scope;
     }
 
+    /**
+     * Ursprung des Log-Eintrags (Klasse / Kontext).
+     */
     public function getOrigin(): string
     {
         return $this->origin;
     }
 
+    /**
+     * Log-Nachricht.
+     */
     public function getMessage(): string
     {
         return $this->message;
     }
 
+    /**
+     * Zusatzdaten zum Log-Eintrag.
+     *
+     * @return array
+     */
     public function getContext(): array
     {
         return $this->context;

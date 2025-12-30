@@ -1,20 +1,27 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Clean Output MVC
  *
- * Demo Controller
+ * Demo Controller (Example)
  *
- * Demonstrates the block-based rendering pipeline using the BlockRenderer.
- * This controller intentionally contains no HTML and no rendering logic.
+ * Beispiel-Controller zur Demonstration
+ * des block-basierten Renderings.
  *
- * @author    Michael Korte
- * @email     mkorte@korte-software.de
- * @company   Michael Korte Software
+ * Aufgabe:
+ * - Zeigt die Nutzung von PageContext + Blocks
+ * - Enthält bewusst KEIN HTML
+ * - Enthält KEINE Rendering-Logik
  *
- * @version   0.1
- * @date      13.12.2025
+ * ❗ HINWEIS:
+ * - Dies ist ein Demo-/Beispiel-Controller
+ * - Gehört nicht dauerhaft in den Core
+ * - Wird perspektivisch nach /App verschoben
  *
  * @package   CHK\Controller
+ * @author    Michael Korte
+ * @license   MIT
  */
 
 namespace CHK\Controller;
@@ -24,9 +31,9 @@ use CHK\Core\Controller;
 final class DemoController extends Controller
 {
     /**
-     * Render demo page with example blocks.
+     * Rendert eine Demo-Seite mit Beispiel-Blocks.
      *
-     * @return string Rendered HTML output
+     * @return string
      */
     public function index(): string
     {

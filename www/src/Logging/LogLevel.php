@@ -1,4 +1,31 @@
 <?php
+declare(strict_types=1);
+
+/**
+ * Clean Output MVC
+ *
+ * Log Level
+ *
+ * Definition der verfügbaren Log-Level
+ * als Bitmasken.
+ *
+ * Aufgabe:
+ * - Einheitliche Log-Level im Framework
+ * - Kombinierbar über Bitmasken
+ *
+ * ❗ WICHTIG:
+ * - KEINE Logik
+ * - KEINE Ausgabe
+ * - KEINE Persistenz
+ *
+ * Wird vom Logger zur Filterung
+ * und vom Formatter zur Darstellung verwendet.
+ *
+ * @package   CHK\Logging
+ * @author    Michael Korte
+ * @license   MIT
+ */
+
 namespace CHK\Logging;
 
 final class LogLevel
@@ -11,6 +38,9 @@ final class LogLevel
     public const DEBUG    = 1 << 5;
     public const TRACE    = 1 << 6;
 
+    /**
+     * Maske für alle Log-Level.
+     */
     public const ALL =
         self::FATAL
       | self::CRITICAL
@@ -20,6 +50,13 @@ final class LogLevel
       | self::DEBUG
       | self::TRACE;
 
+    /**
+     * Wandelt einen Log-Level in seinen Namen.
+     *
+     * @param int $level
+     *
+     * @return string
+     */
     public static function toName(int $level): string
     {
         return match ($level) {
