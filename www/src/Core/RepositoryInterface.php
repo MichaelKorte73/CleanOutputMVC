@@ -4,32 +4,46 @@ declare(strict_types=1);
 namespace CHK\Core;
 
 /**
- * Repository relation contract.
+ * Clean Output MVC
  *
- * This interface is intentionally minimal.
- * It does NOT enforce an ORM or query builder.
- * It only declares an explicit opt-in for relation loading.
+ * Repository Relation Contract
  *
- * Implementations may:
- * - ignore unsupported relations
- * - validate relations lazily
- * - or throw domain-specific exceptions
+ * Minimaler, expliziter Vertrag zur Deklaration von Relationen.
  *
- * No automatic joins, no magic.
+ * ❗ Dieses Interface:
+ * - erzwingt KEIN ORM
+ * - erzwingt KEIN Query-Builder
+ * - implementiert KEINE Lade-Logik
+ *
+ * Es dient ausschließlich als Opt-in-Signal:
+ * „Dieses Repository ist in der Lage, Relationen bewusst zu laden.“
+ *
+ * Implementierungen dürfen:
+ * - unbekannte Relationen ignorieren
+ * - Relationen lazy validieren
+ * - domain-spezifische Exceptions werfen
+ *
+ * ❌ Keine automatischen Joins
+ * ❌ Keine implizite Magie
+ *
+ * @package   CHK\Core
+ * @author    Michael Korte
+ * @license   MIT
  */
 interface RepositoryInterface
 {
     /**
-     * Declare relations to be loaded alongside the main entity.
+     * Deklariert Relationen, die gemeinsam mit der Haupt-Entität
+     * geladen werden sollen.
      *
-     * Example:
+     * Beispiel:
      *
      * $repo->withRelations([
      *     'user' => [
-     *         'table'      => 'users',
-     *         'localKey'   => 'user_id',
-     *         'foreignKey'=> 'id',
-     *         'fields'     => ['email', 'firstname'],
+     *         'table'       => 'users',
+     *         'localKey'    => 'user_id',
+     *         'foreignKey' => 'id',
+     *         'fields'      => ['email', 'firstname'],
      *     ],
      * ]);
      *
@@ -40,7 +54,7 @@ interface RepositoryInterface
      *     fields?: string[]
      * }> $relations
      *
-     * @return static
+     * @return static Ermöglicht fluentes Chaining
      */
     public function withRelations(array $relations): static;
 }

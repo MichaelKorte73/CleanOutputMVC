@@ -1,6 +1,31 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * Clean Output MVC
+ *
+ * Bootstrap
+ *
+ * Zentrale System-Bootstrap-Klasse.
+ *
+ * Verantwortlich für:
+ * - Laden & Mergen der Konfiguration
+ * - Initialisierung aller Core-Services
+ * - Aufbau der App-Instanz
+ * - Durchsetzung harter System-Guards (DB, Canonical URL)
+ *
+ * ❗ Bootstrap enthält KEINE Business-Logik
+ * ❗ Bootstrap entscheidet NICHT über Routing
+ * ❗ Bootstrap darf den App-Start abbrechen
+ *
+ * Failure-Policy:
+ * - Kritische Infrastruktur (z.B. DB) fehlt → App startet NICHT
+ *
+ * @package   CHK\Core
+ * @author    Michael Korte
+ * @license   MIT
+ */
+
 namespace CHK\Core;
 
 use Twig\Environment;
@@ -29,6 +54,16 @@ final class Bootstrap
     /* ----------------------------------------
        CONFIG
     ---------------------------------------- */
+
+    /**
+     * Lädt die Applikationskonfiguration.
+     *
+     * Reihenfolge:
+     * 1. config/app.php
+     * 2. config/credentials.php (optional)
+     *
+     * credentials.php überschreibt app.php rekursiv.
+     */
     private static function loadConfig(): array
     {
         $appConfig = require __DIR__ . '/../../config/app.php';
@@ -47,6 +82,19 @@ final class Bootstrap
        BOOT
        → liefert App ODER null (harte Failure-Policy)
     ---------------------------------------- */
+
+    /**
+     * Bootstrapped das gesamte System.
+     *
+     * Ablauf:
+     * 1. Canonical-URL-Guard
+     * 2. Config laden
+     * 3. App instanziieren
+     * 4. Core-Services registrieren
+     * 5. Projekt-spezifische Erweiterungen laden
+     *
+     * @return App|null  null bei kritischem Systemfehler
+     */
     public static function boot(): ?App
     {
         self::enforceCanonicalUrl();
@@ -74,6 +122,10 @@ final class Bootstrap
 
         /* ---------------- Database (HARD GUARD) ---------------- */
 
+        /**
+         * Datenbank ist systemkritisch.
+         * Bei Verbindungsfehler → App startet NICHT.
+         */
         if (!empty($config['db'])) {
             try {
                 $app->setService('db', new Database($config['db']));
@@ -86,7 +138,6 @@ final class Bootstrap
                     ['exception' => $e->getMessage()]
                 );
 
-                // ❌ App darf NICHT starten
                 return null;
             }
         }
@@ -114,22 +165,10 @@ final class Bootstrap
 
         /* ---------------- Renderer Services ---------------- */
 
-        $app->setService(
-            'imageRenderer',
-            new ImageRenderer($config['images'] ?? [])
-        );
-        $app->setService(
-            'styleRenderer',
-            new StyleRenderer($config['styles'] ?? [])
-        );
-        $app->setService(
-            'scriptRenderer',
-            new ScriptRenderer($config['scripts'] ?? [])
-        );
-        $app->setService(
-            'blockRenderer',
-            new BlockRenderer($twig)
-        );
+        $app->setService('imageRenderer', new ImageRenderer($config['images'] ?? []));
+        $app->setService('styleRenderer', new StyleRenderer($config['styles'] ?? []));
+        $app->setService('scriptRenderer', new ScriptRenderer($config['scripts'] ?? []));
+        $app->setService('blockRenderer', new BlockRenderer($twig));
 
         /* ---------------- Project Services ---------------- */
 
@@ -163,21 +202,28 @@ final class Bootstrap
         }
 
         /* ---------------- Middleware ---------------- */
-$app->addMiddleware(new \CHK\Middleware\CapabilityMiddleware());
 
-$app->addMiddleware(new \CHK\Middleware\MethodWhitelistMiddleware(['GET', 'POST']));
+        /**
+         * Reihenfolge ist relevant:
+         * - System Guards zuerst
+         * - Rate/Abuse danach
+         */
+        $app->addMiddleware(new \CHK\Middleware\CapabilityMiddleware());
+        $app->addMiddleware(new \CHK\Middleware\MethodWhitelistMiddleware(['GET', 'POST']));
+        $app->addMiddleware(new \CHK\Middleware\PayloadSizeMiddleware(1_000_000));
+        $app->addMiddleware(new \CHK\Middleware\RateLimitMiddleware());
+        $app->addMiddleware(new \CHK\Middleware\AbuseBurstMiddleware(10, 2));
 
-$app->addMiddleware(new \CHK\Middleware\PayloadSizeMiddleware(1_000_000));
-
-$app->addMiddleware(new \CHK\Middleware\RateLimitMiddleware());
-
-$app->addMiddleware(new \CHK\Middleware\AbuseBurstMiddleware(10, 2));
         return $app;
     }
 
     /* ----------------------------------------
        TWIG
     ---------------------------------------- */
+
+    /**
+     * Initialisiert Twig inkl. Loader & Core-Funktionen.
+     */
     private static function bootTwig(App $app): Environment
     {
         $loader = new FilesystemLoader([
@@ -209,8 +255,17 @@ $app->addMiddleware(new \CHK\Middleware\AbuseBurstMiddleware(10, 2));
     }
 
     /* ----------------------------------------
-       CANONICAL URL (Trailing Slash)
+       CANONICAL URL
     ---------------------------------------- */
+
+    /**
+     * Erzwingt eine kanonische URL-Struktur.
+     *
+     * Aktuell:
+     * - Entfernt Trailing Slash
+     *
+     * ❗ Läuft VOR App-Initialisierung
+     */
     private static function enforceCanonicalUrl(): void
     {
         if (php_sapi_name() === 'cli') {

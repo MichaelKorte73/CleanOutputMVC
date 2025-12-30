@@ -12,12 +12,17 @@ declare(strict_types=1);
  * - Default: allow-all (fail open)
  * - Vorbereitung für spätere CMS-/Admin-Layer
  *
- * Philosophy:
+ * Philosophie:
  * Capabilities beschreiben *was* ein Component kann.
- * Permissions entscheiden *ob* es aktuell erlaubt ist.
+ * Permissions entscheiden *ob* es im aktuellen Kontext erlaubt ist.
  *
- * @author  Michael Korte
- * @license MIT
+ * ❗ Keine UI-Logik
+ * ❗ Keine Authentifizierung
+ * ❗ Keine Rollen
+ *
+ * @package   CHK\Core
+ * @author    Michael Korte
+ * @license   MIT
  */
 
 namespace CHK\Core;
@@ -25,35 +30,36 @@ namespace CHK\Core;
 final class PermissionResolver
 {
     /**
-     * @var array<string, bool>
-     * explizit gesetzte Permission-Overrides
+     * Explizite Permission-Overrides.
+     *
+     * key   = capability
+     * value = erlaubt (true) / verboten (false)
+     *
+     * @var array<string,bool>
      */
     private array $overrides = [];
 
     /**
-     * Prüft, ob eine Capability erlaubt ist.
+     * Prüft, ob eine Capability im aktuellen App-Kontext erlaubt ist.
      *
-     * Default:
-     * - Wenn keine Regel existiert → erlaubt
+     * Default-Policy (v0.3 Core):
+     * - Wenn keine Regel existiert → erlaubt (fail open)
      * - Explizite Overrides schlagen Default
      *
-     * Beispiel-Capability:
-     *   "media.read"
-     *   "pages.write"
-     *   "admin.access"
+     * @param string $capability
+     * @param App    $app        Aktueller App-Kontext (vorbereitet für spätere Erweiterung)
      */
-    public function allows(string $capability): bool
+    public function isAllowed(string $capability, App $app): bool
     {
         if (array_key_exists($capability, $this->overrides)) {
             return $this->overrides[$capability];
         }
 
-        // Core-Policy v0.3: alles erlaubt, solange nichts verbietet
         return true;
     }
 
     /**
-     * Explizites Erlauben einer Capability
+     * Erlaubt explizit eine Capability.
      */
     public function allow(string $capability): void
     {
@@ -61,7 +67,7 @@ final class PermissionResolver
     }
 
     /**
-     * Explizites Verbieten einer Capability
+     * Verbietet explizit eine Capability.
      */
     public function deny(string $capability): void
     {
@@ -69,7 +75,12 @@ final class PermissionResolver
     }
 
     /**
-     * Bulk-Definition (z.B. aus App / CMS / Policy-Datei)
+     * Setzt mehrere Permission-Regeln auf einmal.
+     *
+     * Typischer Einsatz:
+     * - App-Bootstrap
+     * - Policy-Datei
+     * - später: Admin / CMS
      *
      * @param array<string,bool> $rules
      */
@@ -81,7 +92,9 @@ final class PermissionResolver
     }
 
     /**
-     * Debug / Introspection
+     * Liefert alle gesetzten Overrides (Debug / Introspection).
+     *
+     * @return array<string,bool>
      */
     public function all(): array
     {

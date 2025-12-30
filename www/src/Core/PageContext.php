@@ -1,6 +1,35 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * Clean Output MVC
+ *
+ * PageContext
+ *
+ * Zentrale, mutable Seiten-Datenstruktur.
+ *
+ * Wird aufgebaut durch:
+ * - Controller (primär)
+ * - Components (über Hooks)
+ *
+ * Wird konsumiert durch:
+ * - Renderer (read-only)
+ *
+ * Verantwortlich für:
+ * - HTTP-Status & Meta-Daten
+ * - View-Daten (klassisch)
+ * - Asset-Handles (Styles / Scripts)
+ * - Block-Konfiguration (v0.3+)
+ *
+ * ❗ Enthält KEINE Rendering-Logik
+ * ❗ Enthält KEINE Business-Logik
+ * ❗ Wird pro Request neu instanziiert
+ *
+ * @package   CHK\Core
+ * @author    Michael Korte
+ * @license   MIT
+ */
+
 namespace CHK\Core;
 
 final class PageContext
@@ -8,29 +37,54 @@ final class PageContext
     // -------------------------------------------------
     // STATUS / META
     // -------------------------------------------------
+
+    /** HTTP-Statuscode der Response */
     public int $status = 200;
+
+    /** <title>-Inhalt */
     public string $title = '';
+
+    /** Meta-Description */
     public ?string $description = null;
 
     // -------------------------------------------------
-    // VIEW DATA
+    // VIEW DATA (klassisch, Twig)
     // -------------------------------------------------
+
+    /**
+     * Freie View-Daten für Templates.
+     * Wird unverändert an den Renderer übergeben.
+     */
     private array $viewData = [];
 
     // -------------------------------------------------
-    // ASSETS (BC-LAYER)
+    // ASSETS (Handles, keine URLs)
     // -------------------------------------------------
+
+    /**
+     * Style-Handles (z.B. "base", "admin")
+     */
     private array $styles  = [];
+
+    /**
+     * Script-Handles (z.B. "core", "editor")
+     */
     private array $scripts = [];
 
     // -------------------------------------------------
-    // BLOCKS (explizit, v0.3 sauber)
+    // BLOCKS (v0.3+)
     // -------------------------------------------------
+
+    /**
+     * Block-Konfigurationen.
+     * Struktur wird vom BlockRenderer interpretiert.
+     */
     private array $blocks = [];
 
     // -------------------------------------------------
     // META
     // -------------------------------------------------
+
     public function withStatus(int $status): self
     {
         $this->status = $status;
@@ -38,8 +92,14 @@ final class PageContext
     }
 
     /**
-     * Opt-in Global Assets (Admin / Base Layouts)
-     * Bewusst pragmatisch, keine Magie
+     * Opt-in für globale Basis-Assets.
+     *
+     * Gedacht für:
+     * - Admin
+     * - Base-Layouts
+     *
+     * ❗ Kein Auto-Load
+     * ❗ Keine Magie
      */
     public function withGlobals(): self
     {
@@ -63,8 +123,9 @@ final class PageContext
     }
 
     // -------------------------------------------------
-    // ASSETS – BACKWARD COMPATIBLE API
+    // ASSETS
     // -------------------------------------------------
+
     public function addStyle(string $name): self
     {
         if (!in_array($name, $this->styles, true)) {
@@ -81,9 +142,6 @@ final class PageContext
         return $this;
     }
 
-    // -------------------------------------------------
-    // ASSETS – FOR RENDERER
-    // -------------------------------------------------
     public function getStyles(): array
     {
         return $this->styles;
@@ -97,6 +155,7 @@ final class PageContext
     // -------------------------------------------------
     // VIEW DATA
     // -------------------------------------------------
+
     public function with(string $key, mixed $value): self
     {
         $this->viewData[$key] = $value;
@@ -111,6 +170,7 @@ final class PageContext
     // -------------------------------------------------
     // BLOCKS
     // -------------------------------------------------
+
     public function withBlocks(array $blocks): self
     {
         $this->blocks = $blocks;

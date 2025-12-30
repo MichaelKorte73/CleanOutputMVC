@@ -10,12 +10,18 @@ declare(strict_types=1);
  * Definiert den verbindlichen Controller-Contract.
  *
  * Verantwortlich für:
- * - Zugriff auf App & Services
- * - Aufbau von PageContext
- * - Rückgabe von Responses (string | array | null)
+ * - Zugriff auf App, Services und Config
+ * - Aufbau und Nutzung des PageContext
+ * - Orchestrierung von Responses
  *
- * ❗ Controller rendern NICHT direkt Output
- * ❗ Controller orchestrieren, sie entscheiden nicht über Transport
+ * Controller-Contract (v0.3):
+ * Eine Action darf zurückgeben:
+ * - string  → HTML (Core sendet Response)
+ * - array   → JSON (Core sendet Response)
+ * - null    → Controller hat Response selbst vollständig ausgegeben
+ *
+ * ❗ Controller rendern KEINEN Output direkt
+ * ❗ Controller entscheiden NICHT über Transport (HTML/JSON)
  *
  * @package   CHK\Core
  * @author    Michael Korte
@@ -37,11 +43,17 @@ abstract class Controller
        CORE ACCESS
     ---------------------------------------- */
 
+    /**
+     * Zugriff auf die zentrale App-Instanz.
+     */
     protected function app(): App
     {
         return $this->app;
     }
 
+    /**
+     * Zugriff auf den aktuellen PageContext.
+     */
     protected function page(): PageContext
     {
         return $this->app->getPage();
@@ -51,11 +63,19 @@ abstract class Controller
        SERVICES / CONFIG
     ---------------------------------------- */
 
+    /**
+     * Zugriff auf einen registrierten Service.
+     *
+     * @throws \RuntimeException wenn Service nicht existiert
+     */
     protected function service(string $id): mixed
     {
         return $this->app->getService($id);
     }
 
+    /**
+     * Zugriff auf Konfiguration.
+     */
     protected function config(string $key, mixed $default = null): mixed
     {
         return $this->app->config($key, $default);
@@ -65,11 +85,19 @@ abstract class Controller
        CAPABILITIES
     ---------------------------------------- */
 
+    /**
+     * Prüft, ob eine Capability im aktuellen Kontext erlaubt ist.
+     */
     protected function can(string $capability): bool
     {
         return $this->app->can($capability);
     }
 
+    /**
+     * Erzwingt eine Capability.
+     *
+     * @throws \RuntimeException wenn Capability nicht erlaubt ist
+     */
     protected function requireCapability(string $capability): void
     {
         $this->app->requireCapability($capability);
@@ -82,7 +110,7 @@ abstract class Controller
     /**
      * Rendert eine Seite.
      *
-     * @return string HTML (Renderer übernimmt Output)
+     * @return string HTML – Ausgabe erfolgt durch den Core
      */
     protected function render(string $template, PageContext $page): string
     {
@@ -101,9 +129,9 @@ abstract class Controller
     }
 
     /**
-     * JSON-Response (Transport entscheidet Core)
+     * JSON-Response.
      *
-     * @return array
+     * @return array Daten – Serialisierung erfolgt durch den Core
      */
     protected function json(array $data, int $status = 200): array
     {
@@ -112,13 +140,15 @@ abstract class Controller
     }
 
     /**
-     * Redirect (Controller beendet Response selbst)
+     * Redirect.
+     *
+     * ❗ Controller gibt die Response selbst aus
+     * ❗ Core verarbeitet danach nichts mehr
      *
      * @return never
      */
     protected function redirect(string $url, int $status = 302): never
     {
         Response::redirect($url, $status);
-        exit;
     }
 }
