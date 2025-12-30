@@ -21,8 +21,12 @@
     // -------------------------------------------------
     App._domReady   = document.readyState !== 'loading';
     App._appReady   = false;
-    App._modules    = new Set();   // debug only
     App._readyQueue = [];
+
+    // Debug-only state (klar gekapselt)
+    App._debug = {
+        modules: new Set(),
+    };
 
     // -------------------------------------------------
     // DOM ready handling
@@ -35,16 +39,8 @@
     }
 
     // -------------------------------------------------
-    // Internal helpers (debug only)
+    // Internal helpers
     // -------------------------------------------------
-    App._require = function (name) {
-        App._modules.add(name);
-    };
-
-    App._moduleReady = function (name) {
-        App._modules.delete(name);
-    };
-
     App._checkReady = function () {
         if (App._appReady) return;
         if (!App._domReady) return;
@@ -69,6 +65,9 @@
     /**
      * Register a module with a single init callback.
      * Core handles lifecycle and timing.
+     *
+     * @param {string}   name
+     * @param {Function} initFn
      */
     App.register = function (name, initFn) {
         if (!name || typeof initFn !== 'function') {
@@ -76,8 +75,13 @@
             return;
         }
 
-        // debug only
-        App._require(name);
+        // Debug: doppelte Registrierung verhindern
+        if (App._debug.modules.has(name)) {
+            console.warn('Module already registered:', name);
+            return;
+        }
+
+        App._debug.modules.add(name);
 
         App.runWhenReady(() => {
             try {
@@ -85,8 +89,7 @@
             } catch (e) {
                 console.error('Module init failed:', name, e);
             } finally {
-                // debug only
-                App._moduleReady(name);
+                App._debug.modules.delete(name);
             }
         });
     };
@@ -94,8 +97,12 @@
     /**
      * Execute callback when app lifecycle is ready.
      * Safe for late-loaded scripts.
+     *
+     * @param {Function} fn
      */
     App.runWhenReady = function (fn) {
+        if (typeof fn !== 'function') return;
+
         if (App._appReady) {
             fn();
         } else {
@@ -117,5 +124,11 @@
 
     App.on = (el, evt, fn, opts) =>
         (el || document).addEventListener(evt, fn, opts || false);
+
+    // -------------------------------------------------
+    // Finalize
+    // -------------------------------------------------
+    // Public API einfrieren (stabiler Vertrag)
+    Object.freeze(App);
 
 })(window, document);
