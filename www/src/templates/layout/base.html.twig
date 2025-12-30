@@ -1,3 +1,16 @@
+{#
+  Clean Output MVC
+  Base Layout Template
+
+  Aufgabe:
+  - Dokument-Grundstruktur
+  - Einbindung von Head, Header, Footer
+  - Platzhalter für gerenderten Content
+
+  ❗ KEINE Logik
+  ❗ KEINE Datenaufbereitung
+#}
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -12,7 +25,7 @@
 
         <main id="main">
             {% block content %}
-                 {{content|raw}}
+                {{ content|raw }}
             {% endblock %}
         </main>
 

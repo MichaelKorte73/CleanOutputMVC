@@ -1,5 +1,20 @@
+{#
+  Clean Output MVC
+  Document Head Partial
+
+  Aufgabe:
+  - Basis-Metadaten
+  - Einbindung von Styles & Scripts
+  - Delegation an spezialisierte Partials
+
+  ❗ KEINE Logik
+  ❗ KEINE Bedingungen
+#}
+
 <meta charset="utf-8">
+
 {{ scripts_top|raw }}
+
 {% include 'document/title.html.twig' %}
 {% include 'document/meta.html.twig' %}
 

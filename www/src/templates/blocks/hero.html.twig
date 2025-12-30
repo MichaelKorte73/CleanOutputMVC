@@ -1,16 +1,25 @@
-{% set img = image_config('hero') %}
+{#
+  Clean Output MVC
+  Hero Block Template
+
+  Aufgabe:
+  - Darstellung eines Hero-Blocks
+
+  Erwartet:
+  - block.data.headline
+  - block.data.text
+  - block.data.image (preset, file, alt)
+#}
 
 <section class="ce-hero" role="region">
-
-   {{ image(
-            image.preset,
-            image.file,
-            image.alt
-        ) }}
-    
+    {{ image(
+        block.data.image.preset,
+        block.data.image.file,
+        block.data.image.alt
+    ) }}
 
     <div class="ce-hero__content">
-        <h1>{{ headline }}</h1>
-        <p>{{ text }}</p>
+        <h1>{{ block.data.headline }}</h1>
+        <p>{{ block.data.text }}</p>
     </div>
 </section>

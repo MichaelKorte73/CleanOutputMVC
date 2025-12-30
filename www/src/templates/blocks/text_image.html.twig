@@ -1,19 +1,31 @@
+{#
+  Clean Output MVC
+  Text-Image Block Template
+
+  Aufgabe:
+  - Darstellung eines Text-Bild-Blocks
+
+  Erwartet:
+  - block.data.title
+  - block.data.text
+  - block.data.image (preset, file, alt)
+  - block.data.imagePosition
+#}
+
 <section class="ce ce-text-image ce-text-image--{{ block.data.imagePosition }}">
     <div class="ce-text-image__media">
-
-
         {{ image(
-            image.preset,
-            image.file,
-            image.alt
+            block.data.image.preset,
+            block.data.image.file,
+            block.data.image.alt
         ) }}
     </div>
 
     <div class="ce-text-image__content">
         {% if block.data.title %}
-            <h2>{{ title }}</h2>
+            <h2>{{ block.data.title }}</h2>
         {% endif %}
 
-        {{ text|raw }}
+        {{ block.data.text|raw }}
     </div>
 </section>

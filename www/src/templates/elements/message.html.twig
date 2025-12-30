@@ -1,3 +1,15 @@
+{#
+  Clean Output MVC
+  Message Partial (App / Component)
+
+  Aufgabe:
+  - Darstellung einer Message-Box
+  - Erwartet vorbereitete Message-Daten
+
+  Hinweis:
+  - NICHT Core-neutral
+  - Enthält bewusste Darstellungslogik
+#}
 
 {% if message is defined %}
 <div class="msg-box msg-{{ message.type|default('info') }}">
