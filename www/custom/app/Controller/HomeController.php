@@ -11,8 +11,8 @@ final class HomeController extends Controller
         $page = ($this->getPage())
 ->withGlobals()
             ->withMeta(
-                '2chk – Tools to check & shorten URLs',
-                '2chk ist eine Sammlung kleiner Webtools rund um URLs: verkürzen, prüfen, analysieren.'
+                'cloutx - Beispielseite',
+                'cloutx Clean Output MVC.'
             )
          
 ->addStyle('brand')

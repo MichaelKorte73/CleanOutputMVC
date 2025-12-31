@@ -289,7 +289,10 @@ final class App
     /* ----------------------------------------
        ACCESSORS
     ---------------------------------------- */
-
+public function config(string $key, mixed $default = null): mixed
+{
+    return $this->config[$key] ?? $default;
+}
     public function getHooks(): HookManager
     {
         return $this->hooks;

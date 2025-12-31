@@ -6,42 +6,40 @@ declare(strict_types=1);
  *
  * Front Controller
  *
- * Zentrale Einstiegspunkt-Datei der Anwendung.
+ * Zentraler Einstiegspunkt der Anwendung.
  *
  * Aufgaben:
- * - Initialisiert Autoloading
- * - Bootstrapped das Framework
- * - Startet die App-Runtime
+ * - Autoload initialisieren
+ * - Core booten
+ * - Request-Lifecycle starten
  *
- * ❗ WICHTIG:
- * - KEINE Business-Logik
- * - KEINE Routing-Logik
- * - KEINE Rendering-Logik
- *
- * Diese Datei ist bewusst klein,
- * explizit und deterministisch.
+ * ❗ KEINE Business-Logik
+ * ❗ KEIN Routing
+ * ❗ KEIN Rendering
  */
 
+// -------------------------------------------------
+// Error-Handling (DEV only, später env-abhängig)
+// -------------------------------------------------
 ini_set('display_errors', '1');
 
-/**
- * 1️⃣ Composer Autoload
- *
- * Lädt externe Abhängigkeiten (z. B. Twig).
- * Optional – Anwendung funktioniert auch ohne vendor/.
- */
+// -------------------------------------------------
+// 1️⃣ Composer Autoload (optional)
+// -------------------------------------------------
 $composerAutoload = __DIR__ . '/../vendor/autoload.php';
 if (is_file($composerAutoload)) {
     require $composerAutoload;
 }
 
-/**
- * 2️⃣ Interner Autoloader
- *
- * Framework-eigener Autoloader
- * für Core, App, Components und Plugins.
- */
-require __DIR__ . '/../src/Core/Autoload.php';
+// -------------------------------------------------
+// 2️⃣ Core Autoloader
+// -------------------------------------------------
+$coreAutoload = __DIR__ . '/../src/Core/Autoload.php';
+if (!is_file($coreAutoload)) {
+    throw new RuntimeException('Core Autoload not found.');
+}
+
+require $coreAutoload;
 
 \CHK\Core\Autoload::register([
     'CHK\\'        => __DIR__ . '/../src',
@@ -50,22 +48,24 @@ require __DIR__ . '/../src/Core/Autoload.php';
     'Plugins\\'    => __DIR__ . '/../custom/plugins',
 ]);
 
-/**
- * 3️⃣ Bootstrap-Verfügbarkeit prüfen
- *
- * Harte Fail-Policy:
- * - Ohne Bootstrap kein Weiterlaufen
- */
+// -------------------------------------------------
+// 3️⃣ Bootstrap prüfen
+// -------------------------------------------------
 if (!class_exists(\CHK\Core\Bootstrap::class)) {
     throw new RuntimeException(
         'Autoload failed: CHK\Core\Bootstrap not found.'
     );
 }
 
-/**
- * 5️⃣ Runtime starten
- *
- * Ab hier übernimmt die App
- * den vollständigen Request-Lifecycle.
- */
+// -------------------------------------------------
+// 4️⃣ App booten
+// -------------------------------------------------
+$app = \CHK\Core\Bootstrap::boot();
+
+
+
+
+// -------------------------------------------------
+// 5️⃣ Runtime starten
+// -------------------------------------------------
 $app->run();

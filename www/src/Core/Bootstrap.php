@@ -125,7 +125,7 @@ final class Bootstrap
         /**
          * Datenbank ist systemkritisch.
          * Bei Verbindungsfehler → App startet NICHT.
-         */
+         *
         if (!empty($config['db'])) {
             try {
                 $app->setService('db', new Database($config['db']));
@@ -141,7 +141,7 @@ final class Bootstrap
                 return null;
             }
         }
-
+*/
         /* ---------------- Request ---------------- */
 
         $app->setService('request', Request::fromGlobals());
